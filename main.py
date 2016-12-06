@@ -1,11 +1,30 @@
 import random
 from settings import setting
 from textmining import NHSTextMining
-from nltk.tokenize import word_tokenize
-from nltk.classify import NaiveBayesClassifier
 import time
+import pip
 
 __author__ = 'Ming Li'
+
+
+def install(package):
+    """dynamically install missing package"""
+    pip.main(['install', package])
+
+
+try:
+    from nltk.tokenize import word_tokenize
+    from nltk.classify import NaiveBayesClassifier
+    import nltk
+except ImportError:
+    install('nltk')
+    from nltk.tokenize import word_tokenize
+    from nltk.classify import NaiveBayesClassifier
+    import nltk
+
+
+nltk.download('punkt')
+
 
 web_pages = {
     0: 'http://www.nhs.uk/Conditions/Heart-block/Pages/Symptoms.aspx',

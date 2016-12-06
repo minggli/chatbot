@@ -1,9 +1,25 @@
-import requests
-from bs4 import BeautifulSoup
+import pip
 
 __author__ = 'Ming Li'
 
 # web scrapping module for NHS symptoms
+
+
+def install(package):
+    """dynamically install missing package"""
+    pip.main(['install', package])
+
+try:
+    import requests
+except ImportError:
+    install('requests')
+    import requests
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    install('bs4')
+    from bs4 import BeautifulSoup
 
 
 class NHSTextMining(object):
