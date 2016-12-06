@@ -21,12 +21,6 @@ except ImportError:
     install('bs4')
     from bs4 import BeautifulSoup
 
-try:
-    import html5lib
-except ImportError:
-    install('html5lib')
-    import html5lib
-
 
 class NHSTextMining(object):
 
