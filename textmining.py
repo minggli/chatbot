@@ -60,25 +60,14 @@ class NHSTextMining(object):
 
             for i in range(self._count):
                 r = requests.get(url=self._urls[i])
-                while True:
-                    try:
-                        soup = BeautifulSoup(r.text, 'html5lib')
-                        break
-                    except:
-                        pass
+                soup = BeautifulSoup(r.text, 'html5lib')
                 self._soups.append(soup)
 
         elif self._n:
 
             n = self._n
             r = requests.get(url=self._urls[n])
-            while True:
-                try:
-                    soup = BeautifulSoup(r.text, 'html5lib')
-                    break
-                except:
-                    pass
-
+            soup = BeautifulSoup(r.text, 'html5lib')
             self._soups.append(soup)
 
         if self._display:
