@@ -22,13 +22,6 @@ except ImportError:
     from nltk.classify import NaiveBayesClassifier
     import nltk
 
-try:
-    import html5lib
-except ImportError:
-    install('html5lib')
-    import html5lib
-
-
 nltk.download('punkt')
 
 

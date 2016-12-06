@@ -21,6 +21,12 @@ except ImportError:
     install('bs4')
     from bs4 import BeautifulSoup
 
+try:
+    import html5lib
+except ImportError:
+    install('html5lib')
+    import html5lib
+
 
 class NHSTextMining(object):
 
@@ -54,14 +60,24 @@ class NHSTextMining(object):
 
             for i in range(self._count):
                 r = requests.get(url=self._urls[i])
-                soup = BeautifulSoup(r.text, 'html5lib')
+                while True:
+                    try:
+                        soup = BeautifulSoup(r.text, 'html5lib')
+                        break
+                    except:
+                        pass
                 self._soups.append(soup)
 
         elif self._n:
 
             n = self._n
             r = requests.get(url=self._urls[n])
-            soup = BeautifulSoup(r.text, 'html5lib')
+            while True:
+                try:
+                    soup = BeautifulSoup(r.text, 'html5lib')
+                    break
+                except:
+                    pass
 
             self._soups.append(soup)
 
