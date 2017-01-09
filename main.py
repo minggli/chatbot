@@ -77,9 +77,6 @@ for i in web_pages.values():
     mapping[subset[0]] = i
 
 
-# x_train, x_test, y_train, y_test = \
-#     model_selection.train_test_split(feature_set['features'], feature_set['target'], test_size=.3, random_state=1)
-
 classifier = NaiveBayesClassifier.train(feature_set)
 
 
