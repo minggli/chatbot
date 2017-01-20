@@ -100,7 +100,7 @@ def classify(question, decision_boundary=.8):
     if options[0][1] > decision_boundary:
         return obj.max(), 0
     elif options[0][1] > decision_boundary / 3:
-        return ';\n'.join([i[0] + ': ({0:.0f}%)'.format(i[1]*100) for i in options[:3]])
+        return ';\n'.join([i[0] + ': ({:.0%})'.format(i[1]) for i in options[:3]])
     else:
         return None
 
