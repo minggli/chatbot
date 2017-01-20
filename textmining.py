@@ -54,24 +54,25 @@ class NHSTextMining(object):
         """get all web pages and create soup objects ready for information extraction"""
 
         if self._display:
-            print('page(s) are being downloaded...', flush=True, end='')
+            print('page(s) are being downloaded...', flush=True, end='\n')
 
         if not self._n:
 
             for i in range(self._count):
                 r = requests.get(url=self._urls[i])
-                soup = BeautifulSoup(r.text, 'html5lib')
-                self._soups.append(soup)
+                if r.status_code == 200:
+                    soup = BeautifulSoup(r.text, 'html5lib')
+                    self._soups.append(soup)
+                elif self._display:
+                    print('{0} downloading failed!'.format(r.url))
 
         elif self._n:
 
             n = self._n
             r = requests.get(url=self._urls[n])
-            soup = BeautifulSoup(r.text, 'html5lib')
-            self._soups.append(soup)
-
-        if self._display:
-            print('done')
+            if r.status_code == 200:
+                soup = BeautifulSoup(r.text, 'html5lib')
+                self._soups.append(soup)
 
     def extract(self):
 
@@ -79,7 +80,7 @@ class NHSTextMining(object):
 
         self._get()
 
-        print('starting to extract information from websites...', flush=True, end='\n')
+        print('starting to extract information from websites...', flush=True, end='')
 
         for i, page in enumerate(self._soups):
 
@@ -114,7 +115,6 @@ class NHSTextMining(object):
             content.insert(1, meta)
 
             self._output[page_url] = content
-            print('{} extracted successfully.'.format(page_url))
 
         print('done')
 

@@ -70,8 +70,11 @@ feature_set = list()
 mapping = dict()
 
 for i in web_pages.values():
+    try:
+        subset = data[i]
+    except KeyError:
+        pass
 
-    subset = data[i]
     words = word_tokenize(' '.join(NHSTextMining.cleanse(subset)))
     feature_set = feature_set + generate_training_set(bag=words, target=subset[0])
     mapping[subset[0]] = i
@@ -97,7 +100,7 @@ def classify(question, decision_boundary=.8):
     if options[0][1] > decision_boundary:
         return obj.max(), 0
     elif options[0][1] > decision_boundary / 3:
-        return '; '.join([i[0] for i in options[:3]])
+        return ';\n'.join([i[0] + ': ({0:.0f}%)'.format(i[1]*100) for i in options[:3]])
     else:
         return None
 
@@ -134,7 +137,7 @@ def converse(s=2):
             t
             continue
         else:
-            print('\nBased on what you told me, here are possible reasons, including: {0}'.\
+            print('\nBased on what you told me, here are several possible reasons, including: \n{0}'.\
                   format(output), '\nYou can improve result by asking more specific questions')
             t
             q = input('\nwould you like to ask more questions?')
