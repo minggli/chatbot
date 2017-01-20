@@ -79,7 +79,7 @@ class NHSTextMining(object):
 
         self._get()
 
-        print('starting to extract information from websites...', flush=True, end='')
+        print('starting to extract information from websites...', flush=True, end='\n')
 
         for i, page in enumerate(self._soups):
 
@@ -91,7 +91,7 @@ class NHSTextMining(object):
 
             start_idx = int()
             end_idx = int()
-            
+
             for j, value in enumerate(article):
 
                 s1 = article[j] == self._attrs['article_attributes']['start_t_2']
@@ -114,6 +114,7 @@ class NHSTextMining(object):
             content.insert(1, meta)
 
             self._output[page_url] = content
+            print('{} extracted successfully.'.format(page_url))
 
         print('done')
 
