@@ -79,6 +79,7 @@ for i in web_pages.values():
     feature_set = feature_set + generate_training_set(bag=words, target=subset[0])
     mapping[subset[0]] = i
 
+print(feature_set[0][0])
 
 classifier = NaiveBayesClassifier.train(feature_set)
 
