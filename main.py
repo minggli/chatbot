@@ -36,7 +36,7 @@ processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma'
 # miner extracts subject, meta content (e.g. description of the page), main article
 
 
-def generate_training_set(data, n=10, sample_size=100):
+def generate_training_set(data, n=100, sample_size=50):
 
     print('starting to generate training data...', end='', flush=True)
     feature_set = list()

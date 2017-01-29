@@ -175,7 +175,7 @@ class NLPProcessor(object):
 
     def __init__(self):
         """takes in raw_string or dictionary resulted from NHSTextMiner"""
-        print('initiating SpaCy\'s NLP language pipeline...', end='')
+        print('initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
         self._nlp = spacy.load('en')
         print('done')
 
@@ -216,7 +216,7 @@ class NLPProcessor(object):
             self.__part_of_speech__(
                 doc_object, switch=settings['pos']), switch=settings['stop']), switch=settings['lemma'])
 
-    def __part_of_speech__(self, doc_object, switch=True, parts={'ADJ', 'ADV', 'VERB', 'NOUN'}):
+    def __part_of_speech__(self, doc_object, switch=True, parts={'ADJ', 'DET', 'ADV', 'SPACE', 'CONJ', 'PRON', 'ADP', 'VERB', 'NOUN', 'PART'}):
         """filter unrelated parts of speech (POS) and return required parts"""
         assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(' '.join([str(token) for token in doc_object if token.pos_ in parts])) if switch else doc_object
