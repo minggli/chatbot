@@ -119,7 +119,7 @@ def main(classifier, question, decision_boundary=.9, limit=5, settings={'pos': T
     if options[0][1] > decision_boundary:
         return obj.max(), 0
     elif options[0][1] > decision_boundary / 3:
-        return ';\n'.join([pair[0] + ': ({:.0%})'.format(pair[1]) for pair in options if pair[1] > decision_boundary / 10])
+        return ';\n'.join([pair[0] + ': ({:.0%})'.format(pair[1]) for pair in options])
     else:
         return None
 
