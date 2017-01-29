@@ -1,5 +1,7 @@
 import pip
 import spacy
+import pickle
+import os
 
 __author__ = 'Ming Li'
 
@@ -54,35 +56,33 @@ class NHSTextMiner(object):
 
         """get all web pages and create soup objects ready for information extraction"""
 
-        if self._display:
-            print('page(s) are being downloaded...', flush=True, end='\n')
+        if not os.path.exists('data/symptom_pages.pkl'):
 
-        failed_urls = list()
-        for url in self._urls:
-            r = requests.get(url=url)
             if self._display:
-                print(r.status_code, r.url)
-            if r.status_code == 200:
-                soup = BeautifulSoup(r.text, 'html5lib')
-                self._soups.append(soup)
-            else:
-                failed_urls.append(url)
-                # if self._display:
-                #     print('{0} downloading failed!'.format(r.url))
+                print('page(s) are being downloaded...', flush=True, end='\n')
 
-        for f_url in failed_urls:
-            self._urls.remove(f_url)
-        self._count -= len(failed_urls)
+            failed_urls = list()
 
+            for url in self._urls:
+                r = requests.get(url=url)
+                if self._display:
+                    print(r.status_code, r.url)
+                if r.status_code == 200:
+                    soup = BeautifulSoup(r.text, 'html5lib')
+                    self._soups.append(soup)
+                else:
+                    failed_urls.append(url)
 
+            for f_url in failed_urls:
+                self._urls.remove(f_url)
+            self._count -= len(failed_urls)
 
-        # elif self._n:
-        #
-        #     n = self._n
-        #     r = requests.get(url=self._urls[n])
-        #     if r.status_code == 200:
-        #         soup = BeautifulSoup(r.text, 'html5lib')
-        #         self._soups.append(soup)
+            with open('data/symptom_pages.pkl', 'wb') as filename:
+                pickle.dump(self._soups, filename)
+
+        else:
+            with open('data/symptom_pages.pkl', 'rb') as f:
+                self._soups = pickle.load(f)
 
     def extract(self):
 

@@ -1,5 +1,6 @@
 import random
-from settings import setting, web_pages
+from settings import setting
+from get_urls import web_pages
 from textmining import NHSTextMiner, NLPProcessor
 import time
 import pip
@@ -26,7 +27,7 @@ except ImportError:
 # nltk.download('punkt')
 nlp_processor = NLPProcessor()
 
-web_scraper = NHSTextMiner(urls=list(set(web_pages.values())), attrs=setting, display=False)
+web_scraper = NHSTextMiner(urls=list(set(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
