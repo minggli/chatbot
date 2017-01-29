@@ -12,8 +12,8 @@ setting = {
     },
     'article_attributes': {
         'start_t_0': 'Overview',
-        'start_t_1': '\n        Print this page\n    ',
-        'start_t_2': '\n     \n    \n        Print this page\n    \n    \n     \n\n',
+        'start_t_1': 'Print this page',
+        'start_t_2': 'Print this page',
         'end_t_0': 'Share:',
         'end_t_1': '',
         'end_t_2': ''

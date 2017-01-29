@@ -1,4 +1,5 @@
 import pip
+import spacy
 
 __author__ = 'Ming Li'
 
@@ -28,22 +29,22 @@ except ImportError:
     import html5lib
 
 
-class NHSTextMining(object):
+class NHSTextMiner(object):
 
     """web scrapping module using BeautifulSoup4 and Requests"""
 
-    def __init__(self, urls, attrs, n=None, display=False):
+    def __init__(self, urls, attrs, display=False):
 
         """urls and attrs to be supplied by main and setting."""
 
         assert isinstance(urls, list), 'require a list of urls'
         assert isinstance(attrs, dict), 'attributes must be a dictionary'
-        if n:
-            assert isinstance(n, float) and n % 1 == 0 and 0 <= n <= len(urls), 'index error'
+        # if n:
+        #     assert isinstance(n, float) and n % 1 == 0 and 0 <= n <= len(urls), 'index error'
 
         self._urls = urls
         self._attrs = attrs
-        self._n = n
+        # self._n = n
         self._count = len(urls)
         self._soups = list()
         self._display = display
@@ -56,23 +57,31 @@ class NHSTextMining(object):
         if self._display:
             print('page(s) are being downloaded...', flush=True, end='\n')
 
-        if not self._n:
-
-            for i in range(self._count):
-                r = requests.get(url=self._urls[i])
-                if r.status_code == 200:
-                    soup = BeautifulSoup(r.text, 'html5lib')
-                    self._soups.append(soup)
-                elif self._display:
-                    print('{0} downloading failed!'.format(r.url))
-
-        elif self._n:
-
-            n = self._n
-            r = requests.get(url=self._urls[n])
+        failed_urls = list()
+        for url in self._urls:
+            r = requests.get(url=url)
+            print(r.status_code, r.url)
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html5lib')
                 self._soups.append(soup)
+            else:
+                failed_urls.append(url)
+                # if self._display:
+                #     print('{0} downloading failed!'.format(r.url))
+
+        for f_url in failed_urls:
+            self._urls.remove(f_url)
+        self._count -= len(failed_urls)
+
+
+
+        # elif self._n:
+        #
+        #     n = self._n
+        #     r = requests.get(url=self._urls[n])
+        #     if r.status_code == 200:
+        #         soup = BeautifulSoup(r.text, 'html5lib')
+        #         self._soups.append(soup)
 
     def extract(self):
 
@@ -88,7 +97,7 @@ class NHSTextMining(object):
 
             subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
             meta = page.find('meta', attrs=self._attrs['desc_attributes']).get('content')
-            article = [element.get_text() for element in page.find_all(['p', 'li', 'meta'])]
+            article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
 
             start_idx = int()
             end_idx = int()
@@ -122,7 +131,9 @@ class NHSTextMining(object):
 
     @staticmethod
     def cleanse(words, removals='''!"#$%&()*+/;<=>?@[\]^_`{|}~.,:'''):
-        return [i.lower().translate(str.maketrans('', '', removals)).replace('\xa0', ' ') for i in words]
+        return [word.encode('utf-8').decode('ascii', 'ignore').translate(str.maketrans(removals, ' '*len(removals))).replace('\xa0', ' ') for word in words]
+
+        # return [i.lower().translate(str.maketrans('', '', removals)) for i in words]
 
     @staticmethod
     def word_feat(words):
@@ -144,4 +155,62 @@ class AdditiveDict(dict):
 
     def __setitem__(self, key, value):
         super(AdditiveDict, self).__setitem__(key, self.__getitem__(key) + 1)
+
+
+class NLPProcessor(object):
+    """using SpaCy's features to extract relevance out of raw texts."""
+
+    def __init__(self):
+        """takes in raw_string or dictionary resulted from NHSTextMiner"""
+        print('initiating SpaCy\'s NLP English language pipeline...', end='')
+        self._nlp = spacy.load('en')
+        print('done')
+
+        self._is_string = None
+        self._is_dict = None
+        self._output = None
+        self._doc_object = None
+        self._content = None
+
+    def process(self, content, settings={'pos': True, 'stop': True, 'lemma': True}):
+
+        if isinstance(content, str):
+            self._is_string = True
+            self._doc_object = self._nlp(content)
+        elif isinstance(content, dict):
+            self._is_dict = True
+            self._content = {key: self._nlp(' '.join(content[key])) for key in content}
+        else:
+            raise TypeError
+
+        if self._is_string:
+            processed = self._pipeline(doc_object=self._doc_object, settings=settings)
+            self._output = ' '.join(processed.text.split())
+            return self._output
+
+        elif self._is_dict:
+            for document in self._content:
+                self._content[document] = ' '.join(self._pipeline(doc_object=self._content[document], settings=settings).text.split())
+            self._output = self._content
+            return self._output
+
+    def _pipeline(self, doc_object, settings={'pos': True, 'stop': True, 'lemma': True}):
+        return self.__lemmatize__(self.__stop_word__(
+            self.__part_of_speech__(
+                doc_object, switch=settings['pos']), switch=settings['stop']), switch=settings['lemma'])
+
+    def __part_of_speech__(self, doc_object, switch=True, parts={'ADJ', 'DET', 'ADV', 'SPACE', 'CONJ', 'PRON', 'ADP', 'VERB', 'NOUN', 'PART'}):
+        """filter unrelated parts of speech (POS) and return required parts"""
+        assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
+        return self._nlp(' '.join([str(token) for token in doc_object if token.pos_ in parts])) if switch else doc_object
+
+    def __stop_word__(self, doc_object, switch=True):
+        """only remove stop words when it does not form part of phrase e.g. back pain."""
+        assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
+        noun_chunks = ' '.join(set([phrase.text for phrase in doc_object.noun_chunks]))
+        return self._nlp(' '.join([str(token) for token in doc_object if token.is_stop is False or token.text in noun_chunks])) if switch else doc_object
+
+    def __lemmatize__(self, doc_object, switch=True):
+        assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
+        return self._nlp(' '.join([str(token.lemma_) for token in doc_object])) if switch else doc_object
 

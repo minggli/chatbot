@@ -1,6 +1,6 @@
 import random
 from settings import setting
-from textmining import NHSTextMining, AdditiveDict
+from textmining import NHSTextMiner, NLPProcessor
 import time
 import pip
 
@@ -22,6 +22,7 @@ except ImportError:
     from nltk.classify import NaiveBayesClassifier
     import nltk
 
+
 nltk.download('punkt')
 
 
@@ -40,48 +41,44 @@ web_pages = {
     'Pages/Symptoms.aspx'
 }
 
-urls = list(web_pages.values())
+urls = list(set(web_pages.values()))
 
-web_scraper = NHSTextMining(urls=urls, attrs=setting, n=3.2, display=True)
+
+web_scraper = NHSTextMiner(urls=urls, attrs=setting, display=True)
 data = web_scraper.extract()
+labels = [data[key][0] for key in data]
+# cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
+nlp_processor = NLPProcessor()
+processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
 
-# miner extracts subject, meta content (e.g. description of the page), main article
+import spacy
+nlp = spacy.load('en')
+doc = nlp(processed_data['http://www.nhs.uk/Conditions/Heart-block/Pages/Symptoms.aspx'])
+for token in doc:
+    print(token)
+
+# miner extracts subject, meta content (e.g. descriptwion of the page), main article
 
 
-def preview_data():
-    for i in range(1, 10):
-        print(data[web_pages[i]][:1])
-        input('press enter to continue...')
-
-
-def word_feat(words):
-    return AdditiveDict([(word, True) for word in words])
-
-
-def generate_training_set(bag, target=None):
+def generate_training_set(bag_of_words, label=None):
     n = 200
     sample_size = 50
     row = list()
     for i in range(n):
-        row.append((word_feat(random.sample(bag, sample_size)), target))
+        row.append((web_scraper.word_feat(random.sample(bag_of_words, sample_size)), label))
     return row
 
 feature_set = list()
 mapping = dict()
 
-for i in web_pages.values():
-    try:
-        subset = data[i]
-    except KeyError:
-        pass
-
-    words = word_tokenize(' '.join(NHSTextMining.cleanse(subset)))
-    feature_set = feature_set + generate_training_set(bag=words, target=subset[0])
+for i in processed_data:
+    subset = processed_data[i]
+    words = word_tokenize(' '.join(subset))
+    feature_set += generate_training_set(bag_of_words=words, label=subset[0])
     mapping[subset[0]] = i
 
-print(feature_set[0])
 
-classifier = NaiveBayesClassifier.train(feature_set)
+clf = NaiveBayesClassifier.train(feature_set)
 
 
 def decorator_converse(func):
@@ -99,7 +96,7 @@ def decorator_converse(func):
             if len(question) == 0:
                 break
 
-            output = func(question)
+            output = func(classifier=clf, question=question)
 
             if output and output[1] == 0:
                 t()
@@ -120,8 +117,8 @@ def decorator_converse(func):
                 continue
             else:
                 t()
-                print('\nBased on what you told me, here are several possible reasons, including: \n{0}'.\
-                      format(output), '\nYou can improve result by asking more specific questions')
+                print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
+                      format(output), '\n\nYou can improve result by asking more specific questions')
                 t()
                 q = input('\nwould you like to ask more questions?')
                 if 'yes' in q.lower():
@@ -133,19 +130,20 @@ def decorator_converse(func):
 
 
 @decorator_converse
-def main(question, decision_boundary=.8):
+def main(classifier, question, decision_boundary=.8, limit=5):
 
     options = list()
-    words = word_feat(word_tokenize(question))
+    words = web_scraper.word_feat(word_tokenize(question))
     obj = classifier.prob_classify(words)
     keys = list(obj.samples())
 
-    for i in keys:
+    for key in keys:
 
-        prob = obj.prob(i)
-        options.append((i, prob))
+        prob = obj.prob(key)
+        options.append((key, prob))
 
     options.sort(key=lambda x: x[1], reverse=True)
+    options = options[:limit]
 
     if options[0][1] > decision_boundary:
         return obj.max(), 0
