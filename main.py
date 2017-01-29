@@ -1,5 +1,5 @@
 import random
-from settings import setting
+from settings import setting, web_pages
 from textmining import NHSTextMiner, NLPProcessor
 import time
 import pip
@@ -23,54 +23,30 @@ except ImportError:
     import nltk
 
 
-nltk.download('punkt')
+# nltk.download('punkt')
+nlp_processor = NLPProcessor()
 
-
-web_pages = {
-    0: 'http://www.nhs.uk/Conditions/Heart-block/Pages/Symptoms.aspx',
-    1: 'http://www.nhs.uk/conditions/frozen-shoulder/Pages/Symptoms.aspx',
-    2: 'http://www.nhs.uk/conditions/coronary-heart-disease/'
-    'Pages/Symptoms.aspx',
-    3: 'http://www.nhs.uk/conditions/bronchitis/Pages/Symptoms-old.aspx',
-    4: 'http://www.nhs.uk/conditions/warts/Pages/Introduction.aspx',
-    5: 'http://www.nhs.uk/conditions/Sleep-paralysis/Pages/Introduction.aspx',
-    6: 'http://www.nhs.uk/Conditions/Glue-ear/Pages/Symptoms.aspx',
-    7: 'http://www.nhs.uk/Conditions/Depression/Pages/Symptoms.aspx',
-    8: 'http://www.nhs.uk/Conditions/Turners-syndrome/Pages/Symptoms.aspx',
-    9: 'http://www.nhs.uk/Conditions/Obsessive-compulsive-disorder/'
-    'Pages/Symptoms.aspx'
-}
-
-urls = list(set(web_pages.values()))
-
-
-web_scraper = NHSTextMiner(urls=urls, attrs=setting, display=False)
+web_scraper = NHSTextMiner(urls=list(set(web_pages.values())), attrs=setting, display=False)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
-nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
 
-# miner extracts subject, meta content (e.g. descriptwion of the page), main article
+# miner extracts subject, meta content (e.g. description of the page), main article
 
 
-def generate_training_set(bag_of_words, label=None):
-    n = 200
-    sample_size = 50
-    row = list()
-    for i in range(n):
-        row.append((web_scraper.word_feat(random.sample(bag_of_words, sample_size)), label))
-    return row
+def generate_training_set(data, n=200, sample_size=50):
 
-feature_set = list()
-mapping = dict()
+    feature_set = list()
+    for key in data:
+        words = word_tokenize(data[key])
+        row = [tuple((web_scraper.word_feat(random.sample(words, sample_size)), labels[key])) for repeat in range(n)]
+        feature_set += row
 
-for i in processed_data:
+    return feature_set
 
-    words = word_tokenize(processed_data[i])
-    feature_set += generate_training_set(bag_of_words=words, label=labels[i])
-    mapping[labels[i]] = i
-
+feature_set = generate_training_set(processed_data)
+mapping = {v: k for k, v in labels.items()}
 
 clf = NaiveBayesClassifier.train(feature_set)
 
