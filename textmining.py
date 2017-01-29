@@ -93,6 +93,7 @@ class NHSTextMiner(object):
         self._get()
 
         print('starting to extract information from websites...', flush=True, end='')
+        failed_urls = list()
 
         for i, page in enumerate(self._soups):
 
@@ -130,9 +131,14 @@ class NHSTextMiner(object):
                 self._output[page_url] = content
 
             except (IndexError, AttributeError):
+                failed_urls.append(page_url)
                 continue
 
-        print('done')
+        for f_url in failed_urls:
+            self._urls.remove(f_url)
+        self._count -= len(failed_urls)
+
+        print('done. {} of {} failed to be extracted.'.format(len(failed_urls), len(self._soups)), flush=True)
 
         return self._output
 

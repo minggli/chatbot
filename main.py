@@ -36,7 +36,7 @@ processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma'
 # miner extracts subject, meta content (e.g. description of the page), main article
 
 
-def generate_training_set(data, n=200, sample_size=50):
+def generate_training_set(data, n=10, sample_size=100):
 
     print('starting to generate training data...', end='', flush=True)
     feature_set = list()
@@ -110,7 +110,7 @@ def decorator_converse(func):
 
 
 @decorator_converse
-def main(classifier, question, decision_boundary=.9, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
+def main(classifier, question, decision_boundary=.6, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
 
     options = list()
     words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question, settings)))
