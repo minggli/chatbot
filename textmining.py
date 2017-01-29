@@ -60,7 +60,8 @@ class NHSTextMiner(object):
         failed_urls = list()
         for url in self._urls:
             r = requests.get(url=url)
-            print(r.status_code, r.url)
+            if self._display:
+                print(r.status_code, r.url)
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html5lib')
                 self._soups.append(soup)

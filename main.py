@@ -44,18 +44,12 @@ web_pages = {
 urls = list(set(web_pages.values()))
 
 
-web_scraper = NHSTextMiner(urls=urls, attrs=setting, display=True)
+web_scraper = NHSTextMiner(urls=urls, attrs=setting, display=False)
 data = web_scraper.extract()
-labels = [data[key][0] for key in data]
+labels = {key: data[key][0] for key in data}
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
 nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
-
-import spacy
-nlp = spacy.load('en')
-doc = nlp(processed_data['http://www.nhs.uk/Conditions/Heart-block/Pages/Symptoms.aspx'])
-for token in doc:
-    print(token)
 
 # miner extracts subject, meta content (e.g. descriptwion of the page), main article
 
@@ -72,10 +66,10 @@ feature_set = list()
 mapping = dict()
 
 for i in processed_data:
-    subset = processed_data[i]
-    words = word_tokenize(' '.join(subset))
-    feature_set += generate_training_set(bag_of_words=words, label=subset[0])
-    mapping[subset[0]] = i
+
+    words = word_tokenize(processed_data[i])
+    feature_set += generate_training_set(bag_of_words=words, label=labels[i])
+    mapping[labels[i]] = i
 
 
 clf = NaiveBayesClassifier.train(feature_set)
@@ -102,38 +96,39 @@ def decorator_converse(func):
                 t()
                 print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
                 t()
-                q = input('\nwould you like to have more information?')
+                q = input('\nwould you like to have NHS leaflet?')
                 if 'yes' in q.lower():
                     print('here is the link: {0}'.format(mapping[output[0]]))
-
-                q = input('\nwould you like to ask more questions?')
-                if 'yes' in q.lower():
-                    continue
-                else:
-                    break
+                #
+                # q = input('\nwould you like to ask more questions?')
+                # if 'yes' in q.lower():
+                #     continue
+                # else:
+                #     break
             elif not output:
                 t()
-                print('\nSorry I am not able to help, you can improve result by asking more specific questions')
+                print('\nSorry I don\'t have enough knowledge to help you, you can improve result by asking more specific questions')
                 continue
             else:
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
                       format(output), '\n\nYou can improve result by asking more specific questions')
-                t()
-                q = input('\nwould you like to ask more questions?')
-                if 'yes' in q.lower():
-                    continue
-                else:
-                    break
+                # t()
+                # q = input('\nwould you like to ask more questions?')
+                # if 'yes' in q.lower():
+                #     continue
+                # else:
+                #     break
 
     return wrapper
 
 
 @decorator_converse
-def main(classifier, question, decision_boundary=.8, limit=5):
+def main(classifier, question, decision_boundary=.9, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
 
     options = list()
-    words = web_scraper.word_feat(word_tokenize(question))
+    words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question, settings)))
+    print('understanding {}...'.format(words))
     obj = classifier.prob_classify(words)
     keys = list(obj.samples())
 
@@ -148,10 +143,9 @@ def main(classifier, question, decision_boundary=.8, limit=5):
     if options[0][1] > decision_boundary:
         return obj.max(), 0
     elif options[0][1] > decision_boundary / 3:
-        return ';\n'.join([i[0] + ': ({:.0%})'.format(i[1]) for i in options[:3]])
+        return ';\n'.join([pair[0] + ': ({:.0%})'.format(pair[1]) for pair in options if pair[1] > decision_boundary / 10])
     else:
         return None
 
 if __name__ == '__main__':
     main()
-
