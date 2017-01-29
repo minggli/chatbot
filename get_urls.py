@@ -81,4 +81,6 @@ pages = extract_index_pages()
 for page in pages:
     complete_urls += extract_hyperlinks(page)
 
-web_pages = {k: v for k, v in enumerate(set(complete_urls))}
+complete_urls = sorted(list(set(complete_urls)))
+
+web_pages = {k: v for k, v in enumerate(complete_urls)}

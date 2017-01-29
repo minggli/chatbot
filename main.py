@@ -25,12 +25,12 @@ except ImportError:
 
 
 # nltk.download('punkt')
-nlp_processor = NLPProcessor()
 
-web_scraper = NHSTextMiner(urls=list(set(web_pages.values())), attrs=setting, display=True)
+web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
+nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
 
 # miner extracts subject, meta content (e.g. description of the page), main article
@@ -38,18 +38,28 @@ processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma'
 
 def generate_training_set(data, n=200, sample_size=50):
 
+    print('starting to generate training data...', end='')
+
     feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
         row = [tuple((web_scraper.word_feat(random.sample(words, sample_size)), labels[key])) for repeat in range(n)]
         feature_set += row
 
+    print('done')
     return feature_set
+
+
+def train_classifier(feature_set):
+    print('training classifier...', end='')
+    clf = NaiveBayesClassifier.train(feature_set)
+    print('done')
+    return clf
 
 feature_set = generate_training_set(processed_data)
 mapping = {v: k for k, v in labels.items()}
 
-clf = NaiveBayesClassifier.train(feature_set)
+clf = train_classifier(feature_set=feature_set)
 
 
 def decorator_converse(func):
