@@ -35,7 +35,7 @@ complete_urls = list()
 
 def extract_index_pages(file='data/index_pages.pkl'):
 
-    print('constructing website skeleton...', end='\n')
+    print('constructing {} skeleton of symptom pages...'.format(Base_Url), end='\n')
     index_urls = [Base_Url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
 
     bs4_objects = list()

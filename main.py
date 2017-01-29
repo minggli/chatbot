@@ -38,22 +38,21 @@ processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma'
 
 def generate_training_set(data, n=200, sample_size=50):
 
-    print('starting to generate training data...', end='')
-
+    print('starting to generate training data...', end='', flush=True)
     feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
         row = [tuple((web_scraper.word_feat(random.sample(words, sample_size)), labels[key])) for repeat in range(n)]
         feature_set += row
 
-    print('done')
+    print('done', flush=True)
     return feature_set
 
 
 def train_classifier(feature_set):
-    print('training classifier...', end='')
+    print('training classifier...', end='', flush=True)
     clf = NaiveBayesClassifier.train(feature_set)
-    print('done')
+    print('done', flush=True)
     return clf
 
 feature_set = generate_training_set(processed_data)

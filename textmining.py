@@ -181,7 +181,7 @@ class NLPProcessor(object):
 
     def process(self, content, settings={'pos': True, 'stop': True, 'lemma': True}):
 
-        print('Using SpaCy\'s NLP language pipeline to process...', end='')
+        print('Using SpaCy\'s NLP language pipeline to process...', end='', flush=True)
 
         if isinstance(content, str):
             self._is_string = True
