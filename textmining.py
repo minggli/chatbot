@@ -126,4 +126,22 @@ class NHSTextMining(object):
 
     @staticmethod
     def word_feat(words):
-        return dict([(word, True) for word in words])
+        return AdditiveDict([(word, True) for word in words])
+
+
+class AdditiveDict(dict):
+
+    def __init__(self, iterable=None):
+        if not iterable:
+            pass
+        else:
+            assert hasattr(iterable, '__iter__')
+            for i in iterable:
+                self.__setitem__(i[0], 0)
+
+    def __missing__(self, key):
+        return 0
+
+    def __setitem__(self, key, value):
+        super(AdditiveDict, self).__setitem__(key, self.__getitem__(key) + 1)
+

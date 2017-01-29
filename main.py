@@ -1,6 +1,6 @@
 import random
 from settings import setting
-from textmining import NHSTextMining
+from textmining import NHSTextMining, AdditiveDict
 import time
 import pip
 
@@ -42,7 +42,7 @@ web_pages = {
 
 urls = list(web_pages.values())
 
-web_scraper = NHSTextMining(urls=urls, attrs=setting, n=None, display=True)
+web_scraper = NHSTextMining(urls=urls, attrs=setting, n=3.2, display=True)
 data = web_scraper.extract()
 
 # miner extracts subject, meta content (e.g. description of the page), main article
@@ -55,7 +55,7 @@ def preview_data():
 
 
 def word_feat(words):
-    return dict([(word, True) for word in words])
+    return AdditiveDict([(word, True) for word in words])
 
 
 def generate_training_set(bag, target=None):
@@ -79,10 +79,61 @@ for i in web_pages.values():
     feature_set = feature_set + generate_training_set(bag=words, target=subset[0])
     mapping[subset[0]] = i
 
+print(feature_set[0])
+
 classifier = NaiveBayesClassifier.train(feature_set)
 
 
-def classify(question, decision_boundary=.8):
+def decorator_converse(func):
+
+    def t():
+        time.sleep(2)
+        pass
+
+    def wrapper():
+
+        while True:
+
+            question = input('\nhow can I help you?')
+
+            if len(question) == 0:
+                break
+
+            output = func(question)
+
+            if output and output[1] == 0:
+                t()
+                print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
+                t()
+                q = input('\nwould you like to have more information?')
+                if 'yes' in q.lower():
+                    print('here is the link: {0}'.format(mapping[output[0]]))
+
+                q = input('\nwould you like to ask more questions?')
+                if 'yes' in q.lower():
+                    continue
+                else:
+                    break
+            elif not output:
+                t()
+                print('\nSorry I am not able to help, you can improve result by asking more specific questions')
+                continue
+            else:
+                t()
+                print('\nBased on what you told me, here are several possible reasons, including: \n{0}'.\
+                      format(output), '\nYou can improve result by asking more specific questions')
+                t()
+                q = input('\nwould you like to ask more questions?')
+                if 'yes' in q.lower():
+                    continue
+                else:
+                    break
+
+    return wrapper
+
+
+@decorator_converse
+def main(question, decision_boundary=.8):
 
     options = list()
     words = word_feat(word_tokenize(question))
@@ -103,48 +154,6 @@ def classify(question, decision_boundary=.8):
     else:
         return None
 
-
-def converse(s=2):
-
-    t = time.sleep(s)
-
-    while True:
-
-        t
-        question = input('\nhow can I help you?')
-
-        if len(question) == 0:
-            break
-
-        output = classify(question)
-
-        if output and output[1] == 0:
-            t
-            print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
-            t
-            q = input('\nwould you like to have more information?')
-            if 'yes' in q.lower():
-                print('here is the link: {0}'.format(mapping[output[0]]))
-
-            q = input('\nwould you like to ask more questions?')
-            if 'yes' in q.lower():
-                continue
-            else:
-                break
-        elif not output:
-            print('\nSorry I am not able to help, you can improve result by asking more specific questions')
-            t
-            continue
-        else:
-            print('\nBased on what you told me, here are several possible reasons, including: \n{0}'.\
-                  format(output), '\nYou can improve result by asking more specific questions')
-            t
-            q = input('\nwould you like to ask more questions?')
-            if 'yes' in q.lower():
-                continue
-            else:
-                break
-
 if __name__ == '__main__':
-    converse()
+    main()
 
