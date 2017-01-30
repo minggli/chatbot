@@ -30,9 +30,6 @@ except ImportError:
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
-for label in labels:
-    print(label, labels[label])
-
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
 nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})

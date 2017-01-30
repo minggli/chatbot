@@ -43,8 +43,6 @@ class NHSTextMiner(object):
 
         assert isinstance(urls, list), 'require a list of urls'
         assert isinstance(attrs, dict), 'attributes must be a dictionary'
-        # if n:
-        #     assert isinstance(n, float) and n % 1 == 0 and 0 <= n <= len(urls), 'index error'
 
         self._urls = urls
         self._attrs = attrs
@@ -80,10 +78,13 @@ class NHSTextMiner(object):
 
             with open('data/symptom_pages.pkl', 'wb') as filename:
                 pickle.dump(self._soups, filename)
-
+            with open('data/symptom_urls.pkl', 'wb') as filename:
+                pickle.dump(self._urls, filename)
         else:
-            with open('data/symptom_pages.pkl', 'rb') as file:
-                self._soups = pickle.load(file)
+            with open('data/symptom_pages.pkl', 'rb') as filename:
+                self._soups = pickle.load(filename)
+            with open('data/symptom_urls.pkl', 'rb') as filename:
+                self._urls = pickle.load(filename)
 
     def extract(self):
 
@@ -94,9 +95,9 @@ class NHSTextMiner(object):
         print('starting to extract information from websites...', flush=True, end='')
         failed_urls = list()
 
-        for i, page in enumerate(self._soups):
+        for i, page_url in enumerate(self._urls):
 
-            page_url = self._urls[i]
+            page = self._soups[i]
 
             try:
                 subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
@@ -110,8 +111,6 @@ class NHSTextMiner(object):
 
             start_idx = int()
             end_idx = int()
-
-            print(page_url, subj)
 
             for j, value in enumerate(article):
                 # using 3 keys each end to identify range of main article
