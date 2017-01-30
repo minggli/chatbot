@@ -77,7 +77,7 @@ class NHSTextMiner(object):
 
             for f_url in failed_urls:
                 self._urls.remove(f_url)
-                self._count -= len(failed_urls)
+                self._count -= 1
 
             with open('data/symptom_pages.pkl', 'wb') as filename:
                 pickle.dump(self._soups, filename)
@@ -137,10 +137,6 @@ class NHSTextMiner(object):
         for f_url in failed_urls:
             self._urls.remove(f_url)
             self._count -= 1
-            try:
-                del self._output[f_url]
-            except KeyError:
-                pass
 
         print('done. {} of {} failed to be extracted.'.format(len(failed_urls), len(self._soups)), flush=True)
 

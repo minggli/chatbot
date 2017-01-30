@@ -4,6 +4,7 @@ from get_urls import web_pages
 from textmining import NHSTextMiner, NLPProcessor
 import time
 import pip
+import sys
 
 __author__ = 'Ming Li'
 
@@ -29,8 +30,9 @@ except ImportError:
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
-mapping = {v: k for k, v in labels.items()}
-print(mapping)
+for label in labels:
+    print(label, labels[label])
+
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
 nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
@@ -59,6 +61,7 @@ def train_classifier(feature_set):
 
 feature_set = generate_training_set(processed_data)
 mapping = {v: k for k, v in labels.items()}
+print(mapping)
 clf = train_classifier(feature_set=feature_set)
 
 
@@ -75,6 +78,7 @@ def decorator_converse(func):
             question = input('\nhow can I help you?')
 
             if len(question) == 0:
+                sys.exit()
                 break
 
             output = func(classifier=clf, question=question)
