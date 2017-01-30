@@ -3,60 +3,51 @@ from settings import setting
 from get_urls import web_pages
 from textmining import NHSTextMiner, NLPProcessor
 import time
-import pip
+from nltk.tokenize import word_tokenize
+from nltk.classify import NaiveBayesClassifier
+import os
 import sys
+import pickle
+sys.setrecursionlimit(30000)
 
 __author__ = 'Ming Li'
-
-
-def install(package):
-    """dynamically install missing package"""
-    pip.main(['install', package])
-
-try:
-    from nltk.tokenize import word_tokenize
-    from nltk.classify import NaiveBayesClassifier
-    import nltk
-except ImportError:
-    install('nltk')
-    from nltk.tokenize import word_tokenize
-    from nltk.classify import NaiveBayesClassifier
-    import nltk
 
 # nltk.download('punkt')
 
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
+mapping = {v: k for k, v in labels.items()}
 nlp_processor = NLPProcessor()
-processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
-
-# miner extracts subject, meta content (e.g. description of the page), main article
+if not os.path.exists('data/processed_data.pkl'):
+    processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
+    with open('data/processed_data.pkl', 'wb') as filename:
+        pickle.dump(processed_data, filename)
+else:
+    with open('data/processed_data.pkl', 'rb') as filename:
+        processed_data = pickle.load(filename)
 
 
 def generate_training_set(data, n=100):
 
     print('starting to generate training data...', end='', flush=True)
-    feature_set = list()
+    shuffled_feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
-        # print(key, len(words))
-        row = [tuple((web_scraper.word_feat(random.sample(words, len(words)//3)), labels[key])) for repetition in range(n)]
+        row = [tuple((web_scraper.word_feat(random.sample(words, len(words)//3)), labels[key])) for r in range(n)]
         # row = [tuple((web_scraper.word_feat(words), labels[key]))]
-        feature_set += row
+        shuffled_feature_set += row
     print('done', flush=True)
-    return feature_set
+    return shuffled_feature_set
 
 
 def train_classifier(feature_set):
     print('training classifier...', end='', flush=True)
-    clf = NaiveBayesClassifier.train(feature_set)
+    trained_clf = NaiveBayesClassifier.train(feature_set)
     print('done', flush=True)
-    return clf
+    return trained_clf
 
-feature_set = generate_training_set(processed_data)
-mapping = {v: k for k, v in labels.items()}
-clf = train_classifier(feature_set=feature_set)
+clf = train_classifier(feature_set=generate_training_set(processed_data))
 
 
 def decorator_converse(func):
@@ -97,7 +88,7 @@ def decorator_converse(func):
 
 
 @decorator_converse
-def main(classifier, question, decision_boundary=.3, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
+def main(classifier, question, decision_boundary=.8, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
 
     options = list()
     words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question, settings)))
