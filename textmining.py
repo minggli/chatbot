@@ -102,12 +102,13 @@ class NHSTextMiner(object):
                 subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
                 meta = page.find('meta', attrs=self._attrs['desc_attributes']).get('content')
                 article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
-                if len(subj) < 1:
-                    failed_urls.append(page_url)
-                    break
             except AttributeError:
                 failed_urls.append(page_url)
-                break
+                continue
+            print(len(subj))
+            if len(subj) < 1:
+                failed_urls.append(page_url)
+                continue
 
             start_idx = int()
             end_idx = int()
