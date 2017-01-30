@@ -13,7 +13,6 @@ def install(package):
     """dynamically install missing package"""
     pip.main(['install', package])
 
-
 try:
     from nltk.tokenize import word_tokenize
     from nltk.classify import NaiveBayesClassifier
@@ -23,7 +22,6 @@ except ImportError:
     from nltk.tokenize import word_tokenize
     from nltk.classify import NaiveBayesClassifier
     import nltk
-
 
 # nltk.download('punkt')
 
@@ -37,15 +35,15 @@ processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma'
 # miner extracts subject, meta content (e.g. description of the page), main article
 
 
-def generate_training_set(data, n=100, sample_size=50):
+def generate_training_set(data):
 
     print('starting to generate training data...', end='', flush=True)
     feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
-        row = [tuple((web_scraper.word_feat(random.sample(words, sample_size)), labels[key])) for repeat in range(n)]
+        print(len(words), words)
+        row = [tuple((web_scraper.word_feat(words), labels[key]))]
         feature_set += row
-
     print('done', flush=True)
     return feature_set
 
@@ -75,7 +73,6 @@ def decorator_converse(func):
 
             if len(question) == 0:
                 sys.exit()
-                break
 
             output = func(classifier=clf, question=question)
 
@@ -86,12 +83,6 @@ def decorator_converse(func):
                 q = input('\nwould you like to have NHS leaflet?')
                 if 'yes' in q.lower():
                     print('here is the link: {0}'.format(mapping[output[0]]))
-                #
-                # q = input('\nwould you like to ask more questions?')
-                # if 'yes' in q.lower():
-                #     continue
-                # else:
-                #     break
             elif not output:
                 t()
                 print('\nSorry I don\'t have enough knowledge to help you, you can improve result by asking more specific questions')
@@ -100,12 +91,6 @@ def decorator_converse(func):
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
                       format(output), '\n\nYou can improve result by asking more specific questions')
-                # t()
-                # q = input('\nwould you like to ask more questions?')
-                # if 'yes' in q.lower():
-                #     continue
-                # else:
-                #     break
 
     return wrapper
 
