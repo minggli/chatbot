@@ -61,7 +61,6 @@ def train_classifier(feature_set):
 
 feature_set = generate_training_set(processed_data)
 mapping = {v: k for k, v in labels.items()}
-print(mapping)
 clf = train_classifier(feature_set=feature_set)
 
 

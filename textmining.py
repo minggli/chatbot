@@ -3,7 +3,7 @@ import spacy
 import pickle
 import os
 import sys
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(30000)
 
 __author__ = 'Ming Li'
 
@@ -48,7 +48,6 @@ class NHSTextMiner(object):
 
         self._urls = urls
         self._attrs = attrs
-        # self._n = n
         self._count = len(urls)
         self._soups = list()
         self._display = display
@@ -97,42 +96,50 @@ class NHSTextMiner(object):
 
         for i, page in enumerate(self._soups):
 
-            try:
-                page_url = self._urls[i]
+            page_url = self._urls[i]
 
+            try:
                 subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
                 meta = page.find('meta', attrs=self._attrs['desc_attributes']).get('content')
                 article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
+                if len(subj) < 1:
+                    failed_urls.append(page_url)
+                    break
+            except AttributeError:
+                failed_urls.append(page_url)
+                break
 
-                start_idx = int()
-                end_idx = int()
+            start_idx = int()
+            end_idx = int()
 
-                for j, value in enumerate(article):
+            print(page_url, subj)
 
+            for j, value in enumerate(article):
+                # using 3 keys each end to identify range of main article
+                try:
                     s1 = article[j] == self._attrs['article_attributes']['start_t_2']
                     s2 = article[j + 1] == self._attrs['article_attributes']['start_t_1']
                     s3 = article[j + 2] == self._attrs['article_attributes']['start_t_0']
                     e1 = article[j] == self._attrs['article_attributes']['end_t_0']
                     e2 = article[j + 1] == self._attrs['article_attributes']['end_t_1']
                     e3 = article[j + 2] == self._attrs['article_attributes']['end_t_2']
+                except IndexError:
+                    failed_urls.append(page_url)
+                    break
 
-                    if s1 and s2 and s3:
-                        start_idx = j + 2
+                if s1 and s2 and s3:
+                    start_idx = j + 2
 
-                    if start_idx and e1 and e2 and e3:
-                        end_idx = j
-                        break
+                if start_idx and e1 and e2 and e3:
+                    end_idx = j
+                    break
 
-                content = article[start_idx: end_idx]
+            content = article[start_idx: end_idx]
 
-                content.insert(0, subj)
-                content.insert(1, meta)
+            content.insert(0, subj)
+            content.insert(1, meta)
 
-                self._output[page_url] = content
-
-            except (IndexError, AttributeError):
-                failed_urls.append(page_url)
-                continue
+            self._output[page_url] = content
 
         for f_url in failed_urls:
             self._urls.remove(f_url)
@@ -145,8 +152,6 @@ class NHSTextMiner(object):
     @staticmethod
     def cleanse(words, removals='''!"#$%&()*+/;<=>?@[\]^_`{|}~.,:'''):
         return [word.encode('utf-8').decode('ascii', 'ignore').translate(str.maketrans(removals, ' '*len(removals))).replace('\xa0', ' ') for word in words]
-
-        # return [i.lower().translate(str.maketrans('', '', removals)) for i in words]
 
     @staticmethod
     def word_feat(words):
