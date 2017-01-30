@@ -28,21 +28,21 @@ except ImportError:
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
-# cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
 nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
 
 # miner extracts subject, meta content (e.g. description of the page), main article
 
 
-def generate_training_set(data, n=100, sample_size=50):
+def generate_training_set(data, n=100):
 
     print('starting to generate training data...', end='', flush=True)
     feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
-        print(key, len(words))
-        row = [tuple((web_scraper.word_feat(random.sample(words, sample_size)), labels[key])) for repetition in range(n)]
+        # print(key, len(words))
+        row = [tuple((web_scraper.word_feat(random.sample(words, len(words)//3)), labels[key])) for repetition in range(n)]
+        # row = [tuple((web_scraper.word_feat(words), labels[key]))]
         feature_set += row
     print('done', flush=True)
     return feature_set
@@ -67,8 +67,6 @@ def decorator_converse(func):
 
     def wrapper():
 
-        aggregate_texts = list()
-
         while True:
 
             question = input('\nhow can I help you?')
@@ -76,13 +74,10 @@ def decorator_converse(func):
             if len(question) == 0:
                 sys.exit()
 
-            if len(aggregate_texts) == 0:
-                aggregate_texts.append(question)
-
-            output = func(classifier=clf, question=' '.join(aggregate_texts))
+            output = func(classifier=clf, question=question)
 
             if output and output[1] == 0:
-                aggregate_texts = list()
+
                 t()
                 print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
                 t()
@@ -92,19 +87,17 @@ def decorator_converse(func):
             elif not output:
                 t()
                 print('\nSorry I don\'t have enough knowledge to help you, you can improve result by asking more specific questions')
-                aggregate_texts.append(question)
                 continue
             else:
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
                       format(output), '\n\nYou can improve result by asking more specific questions')
-                aggregate_texts.append(question)
 
     return wrapper
 
 
 @decorator_converse
-def main(classifier, question, decision_boundary=.6, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
+def main(classifier, question, decision_boundary=.3, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
 
     options = list()
     words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question, settings)))
