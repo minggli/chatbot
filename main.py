@@ -66,6 +66,8 @@ def decorator_converse(func):
 
     def wrapper():
 
+        aggregate_texts = list()
+
         while True:
 
             question = input('\nhow can I help you?')
@@ -73,9 +75,10 @@ def decorator_converse(func):
             if len(question) == 0:
                 sys.exit()
 
-            output = func(classifier=clf, question=question)
+            output = func(classifier=clf, question=aggregate_texts)
 
             if output and output[1] == 0:
+                aggregate_texts = list()
                 t()
                 print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
                 t()
@@ -85,11 +88,13 @@ def decorator_converse(func):
             elif not output:
                 t()
                 print('\nSorry I don\'t have enough knowledge to help you, you can improve result by asking more specific questions')
+                aggregate_texts.append(question)
                 continue
             else:
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
                       format(output), '\n\nYou can improve result by asking more specific questions')
+                aggregate_texts.append(question)
 
     return wrapper
 
