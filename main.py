@@ -29,6 +29,8 @@ except ImportError:
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
+mapping = {v: k for k, v in labels.items()}
+print(mapping)
 # cleansed_data = {key: web_scraper.cleanse(data[key]) for key in data}
 nlp_processor = NLPProcessor()
 processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
@@ -57,7 +59,6 @@ def train_classifier(feature_set):
 
 feature_set = generate_training_set(processed_data)
 mapping = {v: k for k, v in labels.items()}
-
 clf = train_classifier(feature_set=feature_set)
 
 
