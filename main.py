@@ -41,6 +41,7 @@ def generate_training_set(data):
     feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
+        print(key, words)
         row = [tuple((web_scraper.word_feat(words), labels[key]))]
         feature_set += row
     print('done', flush=True)
@@ -74,6 +75,9 @@ def decorator_converse(func):
 
             if len(question) == 0:
                 sys.exit()
+
+            if len(aggregate_texts) == 0:
+                aggregate_texts.append(question)
 
             output = func(classifier=clf, question=' '.join(aggregate_texts))
 

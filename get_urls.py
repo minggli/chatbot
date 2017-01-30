@@ -3,7 +3,8 @@ import string
 import pickle
 import os
 import re
-
+import sys
+sys.setrecursionlimit(30000)
 
 def install(package):
     """dynamically install missing package"""
