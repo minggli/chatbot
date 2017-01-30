@@ -41,7 +41,6 @@ def generate_training_set(data):
     feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
-        print(len(words), words)
         row = [tuple((web_scraper.word_feat(words), labels[key]))]
         feature_set += row
     print('done', flush=True)
