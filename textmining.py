@@ -134,16 +134,20 @@ class NHSTextMiner(object):
 
             content = article[start_idx: end_idx]
 
+            if len(content) < 5:
+                failed_urls.append(page_url)
+                continue
+
             content.insert(0, subj)
             content.insert(1, meta)
 
             self._output[page_url] = content
 
-        for f_url in failed_urls:
+        for f_url in list(set(failed_urls)):
             self._urls.remove(f_url)
             self._count -= 1
 
-        print('done. {} of {} failed to be extracted.'.format(len(failed_urls), len(self._soups)), flush=True)
+        print('done. {} of {} failed to be extracted.'.format(len(set(failed_urls)), len(self._soups)), flush=True)
 
         return self._output
 
