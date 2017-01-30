@@ -75,7 +75,7 @@ def decorator_converse(func):
             if len(question) == 0:
                 sys.exit()
 
-            output = func(classifier=clf, question=aggregate_texts)
+            output = func(classifier=clf, question=' '.join(aggregate_texts))
 
             if output and output[1] == 0:
                 aggregate_texts = list()
