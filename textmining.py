@@ -105,10 +105,8 @@ class NHSTextMiner(object):
             except AttributeError:
                 failed_urls.append(page_url)
                 continue
-            print(len(subj))
-            if len(subj) < 1:
-                failed_urls.append(page_url)
-                continue
+
+            subj = subj.replace(' - NHS Choices', '')
 
             start_idx = int()
             end_idx = int()

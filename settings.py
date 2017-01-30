@@ -6,9 +6,12 @@ setting = {
     'desc_attributes': {
         'name': 'description'
     },
+    # 'subj_attributes': {
+    #     'name': 'DC.Subject',
+    #     'scheme': 'NHSC.Ontology'
+#   },
     'subj_attributes': {
-        'name': 'DC.Subject',
-        'scheme': 'NHSC.Ontology'
+        'name': 'DC.title'
     },
     'article_attributes': {
         'start_t_0': 'Overview',
