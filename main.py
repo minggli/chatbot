@@ -35,7 +35,7 @@ def generate_training_set(data, n=100):
     shuffled_feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
-        row = [tuple((web_scraper.word_feat(random.sample(words, len(words)//3)), labels[key])) for r in range(n)]
+        row = [tuple((web_scraper.word_feat(random.sample(words, 50)), labels[key])) for r in range(n)]
         # row = [tuple((web_scraper.word_feat(words), labels[key]))]
         shuffled_feature_set += row
     print('done', flush=True)
@@ -59,17 +59,27 @@ def decorator_converse(func):
 
     def wrapper():
 
+        aggregate_text = list()
+        count = 0
+
         while True:
+
+            if count == 3:
+                print('\nOk, let\'s start again...')
+                aggregate_text = list()
 
             question = input('\nhow can I help you?')
 
             if len(question) == 0:
                 sys.exit()
+            if len(aggregate_text) == 0:
+                aggregate_text.append(question)
 
-            output = func(classifier=clf, question=question)
+            output = func(classifier=clf, question=' '.join(aggregate_text))
 
             if output and output[1] == 0:
-
+                count = 0
+                aggregate_text = list()
                 t()
                 print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
                 t()
@@ -78,12 +88,17 @@ def decorator_converse(func):
                     print('here is the link: {0}'.format(mapping[output[0]]))
             elif not output:
                 t()
-                print('\nSorry I don\'t have enough knowledge to help you, you can improve result by asking more specific questions')
+                print('\nSorry I don\'t have enough knowledge to help you, you can improve result by describing symptoms further.')
+                count += 1
+                aggregate_text.append(question)
                 continue
             else:
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
-                      format(output), '\n\nYou can improve result by asking more specific questions')
+                      format(output), '\n\nYou can improve result by describing symptoms further.')
+                count += 1
+                aggregate_text.append(question)
+
 
     return wrapper
 

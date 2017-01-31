@@ -137,7 +137,7 @@ class NHSTextMiner(object):
 
     @staticmethod
     def word_feat(words):
-        return AdditiveDict([(word, True) for word in words])
+        return dict([(word, True) for word in words])
 
 
 class AdditiveDict(dict):
