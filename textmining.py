@@ -3,6 +3,10 @@ import spacy
 import pickle
 import os
 import sys
+import html5lib
+import requests
+from bs4 import BeautifulSoup
+
 sys.setrecursionlimit(30000)
 
 __author__ = 'Ming Li'
@@ -13,24 +17,6 @@ __author__ = 'Ming Li'
 def install(package):
     """dynamically install missing package"""
     pip.main(['install', package])
-
-try:
-    import requests
-except ImportError:
-    install('requests')
-    import requests
-
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    install('bs4')
-    from bs4 import BeautifulSoup
-
-try:
-    import html5lib
-except ImportError:
-    install('html5lib')
-    import html5lib
 
 
 class NHSTextMiner(object):

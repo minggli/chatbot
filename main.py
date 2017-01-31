@@ -5,6 +5,7 @@ from textmining import NHSTextMiner, NLPProcessor
 import time
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
+import nltk
 import os
 import sys
 import pickle
@@ -12,7 +13,7 @@ sys.setrecursionlimit(30000)
 
 __author__ = 'Ming Li'
 
-# nltk.download('punkt')
+nltk.download('punkt')
 
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
