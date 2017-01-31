@@ -1,11 +1,11 @@
-import random
 from settings import setting
 from get_urls import web_pages
 from textmining import NHSTextMiner, NLPProcessor
-import time
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 import nltk
+import random
+import time
 import os
 import sys
 import pickle
@@ -13,13 +13,12 @@ sys.setrecursionlimit(30000)
 
 __author__ = 'Ming Li'
 
-nltk.download('punkt')
-
 web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting, display=True)
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
 mapping = {v: k for k, v in labels.items()}
 nlp_processor = NLPProcessor(attrs=setting)
+
 if not os.path.exists('data/processed_data.pkl'):
     processed_data = nlp_processor.process(data)
     with open('data/processed_data.pkl', 'wb') as filename:
@@ -36,7 +35,6 @@ def generate_training_set(data, n=100):
     for key in data:
         words = word_tokenize(data[key])
         row = [tuple((web_scraper.word_feat(random.sample(words, 100)), labels[key])) for r in range(n)]
-        # row = [tuple((web_scraper.word_feat(words), labels[key]))]
         shuffled_feature_set += row
     print('done', flush=True)
     return shuffled_feature_set
@@ -59,23 +57,24 @@ def decorator_converse(func):
 
     def wrapper(ambiguity_trials=3):
 
+        os.system('clear')
         aggregate_text = list()
         count = 0
 
         while True:
 
             if count == 0:
-                os.system('clear')
-                q_string = '\nHow can I help you?'
+                q_string = 'How can I help you?'
+                aggregate_text = list()
+
             elif count == ambiguity_trials:
                 t(s=1)
                 print('\nOk, we don\'t seem to get anywhere. Let\'s start again...')
-                aggregate_text = list()
                 count = 0
                 t()
                 continue
+
             else:
-                count += 1
                 q_string = '\nCan you tell me more about the symptoms?'
 
             t(s=1)
@@ -89,20 +88,24 @@ def decorator_converse(func):
             output = func(classifier=clf, question=' '.join(aggregate_text))
 
             if output and output[1] == 0:
-                count = 0
                 t()
                 print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
                 t()
                 q = input('\nwould you like to have NHS leaflet?')
                 if 'yes' in q.lower():
                     print('here is the link: {0}'.format(mapping[output[0]]))
+                count = 0
+
             elif not output:
                 t()
                 print('\nSorry I don\'t have enough knowledge to help you, you can improve result by describing symptoms further.')
+                count += 1
+
             else:
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
                       format(output), '\n\nYou can improve result by describing symptoms further.')
+                count += 1
 
     return wrapper
 
