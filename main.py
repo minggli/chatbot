@@ -35,7 +35,7 @@ def generate_training_set(data, n=100):
     shuffled_feature_set = list()
     for key in data:
         words = word_tokenize(data[key])
-        row = [tuple((web_scraper.word_feat(random.sample(words, 50)), labels[key])) for r in range(n)]
+        row = [tuple((web_scraper.word_feat(random.sample(words, 100)), labels[key])) for r in range(n)]
         # row = [tuple((web_scraper.word_feat(words), labels[key]))]
         shuffled_feature_set += row
     print('done', flush=True)
@@ -53,33 +53,43 @@ clf = train_classifier(feature_set=generate_training_set(processed_data))
 
 def decorator_converse(func):
 
-    def t():
-        time.sleep(2)
+    def t(s=2):
+        time.sleep(s)
         pass
 
-    def wrapper():
+    def wrapper(ambiguity_trials=3):
 
         aggregate_text = list()
         count = 0
 
         while True:
 
-            if count == 3:
-                print('\nOk, let\'s start again...')
+            if count == 0:
+                os.system('clear')
+                q_string = '\nHow can I help you?'
+            elif count == ambiguity_trials:
+                t(s=1)
+                print('\nOk, we don\'t seem to get anywhere. Let\'s start again...')
                 aggregate_text = list()
+                count = 0
+                t()
+                continue
+            else:
+                count += 1
+                q_string = '\nCan you tell me more about the symptoms?'
 
-            question = input('\nhow can I help you?')
+            t(s=1)
+            question = input(q_string)
 
-            if len(question) == 0:
+            if 'exit' in question.lower():
                 sys.exit()
-            if len(aggregate_text) == 0:
-                aggregate_text.append(question)
+
+            aggregate_text.append(question)
 
             output = func(classifier=clf, question=' '.join(aggregate_text))
 
             if output and output[1] == 0:
                 count = 0
-                aggregate_text = list()
                 t()
                 print('\nBased on what you told me, here is my diagnosis: {0}.'.format(output[0]))
                 t()
@@ -89,16 +99,10 @@ def decorator_converse(func):
             elif not output:
                 t()
                 print('\nSorry I don\'t have enough knowledge to help you, you can improve result by describing symptoms further.')
-                count += 1
-                aggregate_text.append(question)
-                continue
             else:
                 t()
                 print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
                       format(output), '\n\nYou can improve result by describing symptoms further.')
-                count += 1
-                aggregate_text.append(question)
-
 
     return wrapper
 
