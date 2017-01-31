@@ -64,7 +64,7 @@ def decorator_converse(func):
         while True:
 
             if count == 0:
-                q_string = 'How can I help you?'
+                q_string = '\n\nHow can I help you?'
                 aggregate_text = list()
 
             elif count == ambiguity_trials:
@@ -75,7 +75,7 @@ def decorator_converse(func):
                 continue
 
             else:
-                q_string = '\nCan you tell me more about the symptoms?'
+                q_string = '\n\nCan you tell me more about the symptoms?'
 
             t(s=1)
             question = input(q_string)
