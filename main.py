@@ -18,9 +18,9 @@ web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting,
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
 mapping = {v: k for k, v in labels.items()}
-nlp_processor = NLPProcessor()
+nlp_processor = NLPProcessor(attrs=setting)
 if not os.path.exists('data/processed_data.pkl'):
-    processed_data = nlp_processor.process(data, {'pos': True, 'stop': True, 'lemma': True})
+    processed_data = nlp_processor.process(data)
     with open('data/processed_data.pkl', 'wb') as filename:
         pickle.dump(processed_data, filename)
 else:
@@ -88,10 +88,10 @@ def decorator_converse(func):
 
 
 @decorator_converse
-def main(classifier, question, decision_boundary=.8, limit=5, settings={'pos': True, 'stop': True, 'lemma': True}):
+def main(classifier, question, decision_boundary=.8, limit=5):
 
     options = list()
-    words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question, settings)))
+    words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question)))
     print('understanding {}...'.format(words))
     obj = classifier.prob_classify(words)
     keys = list(obj.samples())

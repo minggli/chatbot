@@ -180,7 +180,7 @@ class AdditiveDict(dict):
 class NLPProcessor(object):
     """using SpaCy's features to extract relevance out of raw texts."""
 
-    def __init__(self):
+    def __init__(self, attrs):
         """takes in raw_string or dictionary resulted from NHSTextMiner"""
         print('initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
         self._nlp = spacy.load('en')
@@ -191,8 +191,9 @@ class NLPProcessor(object):
         self._output = None
         self._doc_object = None
         self._content = None
+        self._attrs = attrs
 
-    def process(self, content, settings={'pos': True, 'stop': True, 'lemma': True}):
+    def process(self, content):
 
         print('Using SpaCy\'s NLP language pipeline to process...', end='', flush=True)
 
@@ -206,24 +207,24 @@ class NLPProcessor(object):
             raise TypeError
 
         if self._is_string:
-            processed = self._pipeline(doc_object=self._doc_object, settings=settings)
+            processed = self._pipeline(doc_object=self._doc_object)
             self._output = ' '.join(processed.text.split())
             print('done')
             return self._output
 
         elif self._is_dict:
             for document in self._content:
-                self._content[document] = ' '.join(self._pipeline(doc_object=self._content[document], settings=settings).text.split())
+                self._content[document] = ' '.join(self._pipeline(doc_object=self._content[document]).text.split())
             self._output = self._content
             print('done')
             return self._output
 
-    def _pipeline(self, doc_object, settings={'pos': True, 'stop': True, 'lemma': True}):
+    def _pipeline(self, doc_object):
         return self.__lemmatize__(self.__stop_word__(
             self.__part_of_speech__(
-                doc_object, switch=settings['pos']), switch=settings['stop']), switch=settings['lemma'])
+                doc_object, parts=self._attrs['nlp_processing']['part_of_speech_include'], switch=self._attrs['nlp_processing']['pipeline']['pos']), switch=self._attrs['nlp_processing']['pipeline']['stop']), switch=self._attrs['nlp_processing']['pipeline']['lemma'])
 
-    def __part_of_speech__(self, doc_object, switch=True, parts={'ADJ', 'DET', 'ADV', 'SPACE', 'CONJ', 'PRON', 'ADP', 'VERB', 'NOUN', 'PART'}):
+    def __part_of_speech__(self, doc_object, parts, switch=True):
         """filter unrelated parts of speech (POS) and return required parts"""
         assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(' '.join([str(token) for token in doc_object if token.pos_ in parts])) if switch else doc_object
