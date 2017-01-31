@@ -3,7 +3,6 @@ import spacy
 import pickle
 import os
 import sys
-import html5lib
 import requests
 from bs4 import BeautifulSoup
 
@@ -12,11 +11,6 @@ sys.setrecursionlimit(30000)
 __author__ = 'Ming Li'
 
 # web scrapping module for NHS symptoms
-
-
-def install(package):
-    """dynamically install missing package"""
-    pip.main(['install', package])
 
 
 class NHSTextMiner(object):
