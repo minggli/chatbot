@@ -1,2 +1,2 @@
 # chatbot
-a naive chatbot that at times misdiagnoses
+a naive chatbot that sometimes misdiagnoses
