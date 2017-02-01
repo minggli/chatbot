@@ -79,6 +79,10 @@ def decorator_converse(func):
 
             t(s=1)
             question = input(q_string)
+            
+            if len(question) == 0:
+                count = 0
+                continue
 
             if 'exit' in question.lower():
                 sys.exit()
