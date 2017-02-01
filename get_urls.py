@@ -1,4 +1,6 @@
-import pip
+from bs4 import BeautifulSoup
+import requests
+import html5lib
 import string
 import pickle
 import os
@@ -6,28 +8,6 @@ import re
 import sys
 sys.setrecursionlimit(30000)
 
-def install(package):
-    """dynamically install missing package"""
-    pip.main(['install', package])
-
-
-try:
-    import requests
-except ImportError:
-    install('requests')
-    import requests
-
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    install('bs4')
-    from bs4 import BeautifulSoup
-
-try:
-    import html5lib
-except ImportError:
-    install('html5lib')
-    import html5lib
 
 index = list(string.ascii_uppercase) + ['0-9']
 Base_Url = 'http://www.nhs.uk'

@@ -12,7 +12,6 @@ __author__ = 'Ming Li'
 
 # web scrapping module for NHS symptoms
 
-
 class NHSTextMiner(object):
 
     """web scrapping module using BeautifulSoup4 and Requests"""
@@ -80,9 +79,11 @@ class NHSTextMiner(object):
             page = self._soups[i]
 
             try:
+
                 subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
                 meta = page.find('meta', attrs=self._attrs['desc_attributes']).get('content')
                 article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
+            
             except AttributeError:
                 failed_urls.append(page_url)
                 continue
@@ -93,14 +94,17 @@ class NHSTextMiner(object):
             end_idx = int()
 
             for j, value in enumerate(article):
+
                 # using 3 keys each end to identify range of main article
                 try:
+
                     s1 = article[j] == self._attrs['article_attributes']['start_t_2']
                     s2 = article[j + 1] == self._attrs['article_attributes']['start_t_1']
                     s3 = article[j + 2] == self._attrs['article_attributes']['start_t_0']
                     e1 = article[j] == self._attrs['article_attributes']['end_t_0']
                     e2 = article[j + 1] == self._attrs['article_attributes']['end_t_1']
                     e3 = article[j + 2] == self._attrs['article_attributes']['end_t_2']
+                
                 except IndexError:
                     failed_urls.append(page_url)
                     break
