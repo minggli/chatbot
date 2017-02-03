@@ -188,7 +188,7 @@ class NLPProcessor(object):
             self._is_dict = True
             self._content = {key: self._nlp(' '.join(content[key])) for key in content}
         else:
-            raise TypeError
+            raise TypeError('require string or dictionary.')
 
         if self._is_string:
             processed = self._pipeline(doc_object=self._doc_object)
@@ -204,9 +204,13 @@ class NLPProcessor(object):
             return self._output
 
     def _pipeline(self, doc_object):
-        return self.__lemmatize__(self.__stop_word__(
-            self.__part_of_speech__(
-                doc_object, parts=self._attrs['nlp_processing']['part_of_speech_include'], switch=self._attrs['nlp_processing']['pipeline']['pos']), switch=self._attrs['nlp_processing']['pipeline']['stop']), switch=self._attrs['nlp_processing']['pipeline']['lemma'])
+        return 
+        self.__lemmatize__(
+        self.__stop_word__(
+        self.__part_of_speech__(doc_object, parts=self._attrs['nlp_processing']['part_of_speech_include'], 
+        switch=self._attrs['nlp_processing']['pipeline']['pos']), 
+        switch=self._attrs['nlp_processing']['pipeline']['stop']), 
+        switch=self._attrs['nlp_processing']['pipeline']['lemma'])
 
     def __part_of_speech__(self, doc_object, parts, switch=True):
         """filter unrelated parts of speech (POS) and return required parts"""
