@@ -16,7 +16,6 @@ complete_urls = list()
 
 def extract_index_pages(file='data/index_pages.pkl'):
 
-    print('constructing {} skeleton of symptom pages...'.format(Base_Url), end='\n')
     index_urls = [Base_Url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
 
     bs4_objects = list()
@@ -26,6 +25,8 @@ def extract_index_pages(file='data/index_pages.pkl'):
             os.mkdir(file[:5])
         except FileExistsError:
             pass
+
+        print('constructing {} skeleton of symptom pages...'.format(Base_Url), end='\n')
 
         for url in index_urls:
             r = requests.get(url=url)
@@ -64,4 +65,4 @@ for page in pages:
 
 complete_urls = sorted(list(set(complete_urls)))
 
-web_pages = {k: v for k, v in enumerate(complete_urls)}
+web_pages = {k: v for k, v in enumerate(complete_urls) if k < 10}

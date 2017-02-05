@@ -179,8 +179,6 @@ class NLPProcessor(object):
 
     def process(self, content):
 
-        print('Using SpaCy\'s NLP language pipeline to process...', end='', flush=True)
-
         if isinstance(content, str):
             self._is_string = True
             self._doc_object = self._nlp(content)
@@ -193,10 +191,10 @@ class NLPProcessor(object):
         if self._is_string:
             processed = self._pipeline(doc_object=self._doc_object)
             self._output = ' '.join(processed.text.split())
-            print('done')
             return self._output
 
         elif self._is_dict:
+            print('Using SpaCy\'s NLP language pipeline to process...', end='', flush=True)
             for document in self._content:
                 self._content[document] = ' '.join(self._pipeline(doc_object=self._content[document]).text.split())
             self._output = self._content

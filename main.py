@@ -4,6 +4,7 @@ from textmining import NHSTextMiner, NLPProcessor
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 import nltk
+nltk.download('punkt')
 import random
 import time
 import os
@@ -17,6 +18,7 @@ web_scraper = NHSTextMiner(urls=sorted(list(web_pages.values())), attrs=setting,
 data = web_scraper.extract()
 labels = {key: data[key][0] for key in data}
 mapping = {v: k for k, v in labels.items()}
+
 nlp_processor = NLPProcessor(attrs=setting)
 
 if not os.path.exists('data/processed_data.pkl'):
@@ -46,10 +48,10 @@ def train_classifier(feature_set):
     print('done', flush=True)
     return trained_clf
 
-clf = train_classifier(feature_set=generate_training_set(processed_data))
-
+classifier = train_classifier(feature_set=generate_training_set(processed_data))
 
 def decorator_converse(func):
+
 
     def t(s=2):
         time.sleep(s)
@@ -89,7 +91,7 @@ def decorator_converse(func):
 
             aggregate_text.append(question)
 
-            output = func(classifier=clf, question=' '.join(aggregate_text))
+            output = func(query=' '.join(aggregate_text))
 
             if output and output[1] == 0:
                 t()
@@ -100,25 +102,25 @@ def decorator_converse(func):
                     print('here is the link: {0}'.format(mapping[output[0]]))
                 count = 0
 
-            elif not output:
+            elif output and output[1] == 1:
                 t()
-                print('\nSorry I don\'t have enough knowledge to help you, you can improve result by describing symptoms further.')
+                print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
+                      format(output[0]), '\n\nYou can improve result by describing symptoms further.')
                 count += 1
 
             else:
                 t()
-                print('\nBased on what you told me, here are several possible reasons, including: \n\n{0}'.\
-                      format(output), '\n\nYou can improve result by describing symptoms further.')
+                print('\nSorry I don\'t have enough knowledge to help you, you can improve result by describing symptoms further.')
                 count += 1
 
     return wrapper
 
 
 @decorator_converse
-def main(classifier, question, decision_boundary=.8, limit=5):
+def main(query, classifier=classifier, decision_boundary=.8, limit=5):
 
     options = list()
-    words = web_scraper.word_feat(word_tokenize(nlp_processor.process(question)))
+    words = web_scraper.word_feat(word_tokenize(nlp_processor.process(query)))
     print('understanding {}...'.format(words))
     obj = classifier.prob_classify(words)
     keys = list(obj.samples())
@@ -134,7 +136,7 @@ def main(classifier, question, decision_boundary=.8, limit=5):
     if options[0][1] > decision_boundary:
         return obj.max(), 0
     elif options[0][1] > decision_boundary / 3:
-        return ';\n'.join([pair[0] + ': ({:.0%})'.format(pair[1]) for pair in options])
+        return ';\n'.join([pair[0] + ': ({:.0%})'.format(pair[1]) for pair in options]), 1
     else:
         return None
 
