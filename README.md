@@ -1,7 +1,7 @@
 # chatbot
 a naive chatbot that sometimes misdiagnoses. 
 
-This retrival-based bot uses publicly available health information and a set of NLP techniques to generate indicative diagnosis and NHS leaflet for that diagnosis. The result is not to be treated as medical advice.
+This retrieval-based bot uses publicly available health information and a set of NLP techniques to generate indicative diagnosis and NHS leaflet for that diagnosis. The result is not to be treated as medical advice.
 
 ## Virtualenv Installation
 You will need [virtualenv](https://virtualenv.pypa.io/en/stable/installation/) to create the environment underpinning this chatbot.
