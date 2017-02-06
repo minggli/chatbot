@@ -1,4 +1,5 @@
 appdirs==1.4.0
+argh==0.26.2
 beautifulsoup4==4.5.3
 bs4==0.0.1
 click==6.7
@@ -16,9 +17,11 @@ nltk==3.2.2
 numpy==1.12.0
 packaging==16.8
 pathlib==1.0.1
+pathtools==0.1.2
 plac==0.9.6
 preshed==0.46.4
 pyparsing==2.1.10
+PyYAML==3.12
 requests==2.13.0
 semver==2.7.5
 six==1.10.0
@@ -28,5 +31,6 @@ thinc==6.2.0
 toolz==0.8.2
 tqdm==4.11.2
 ujson==1.35
+watchdog==0.8.3
 webencodings==0.5
 Werkzeug==0.11.15
