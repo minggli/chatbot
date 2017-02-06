@@ -52,7 +52,6 @@ classifier = train_classifier(feature_set=generate_training_set(processed_data))
 
 def decorator_converse(func):
 
-
     def t(s=2):
         time.sleep(s)
         pass
@@ -116,13 +115,37 @@ def decorator_converse(func):
     return wrapper
 
 
-@decorator_converse
-def main(query, classifier=classifier, decision_boundary=.8, limit=5):
+def clf_main(query, clf=classifier, decision_boundary=.8, limit=5):
 
     options = list()
     words = web_scraper.word_feat(word_tokenize(nlp_processor.process(query)))
     print('understanding {}...'.format(words))
-    obj = classifier.prob_classify(words)
+    obj = clf.prob_classify(words)
+    keys = list(obj.samples())
+
+    for key in keys:
+
+        prob = obj.prob(key)
+        options.append((key, prob))
+
+    options.sort(key=lambda x: x[1], reverse=True)
+    options = options[:limit]
+
+    if options[0][1] > decision_boundary:
+        return obj.max(), 0
+    elif options[0][1] > decision_boundary / 3:
+        return ';\n'.join([pair[0] + ': ({:.0%})'.format(pair[1]) for pair in options]), 1
+    else:
+        return None
+
+
+@decorator_converse
+def main(query, clf=classifier, decision_boundary=.8, limit=5):
+
+    options = list()
+    words = web_scraper.word_feat(word_tokenize(nlp_processor.process(query)))
+    print('understanding {}...'.format(words))
+    obj = clf.prob_classify(words)
     keys = list(obj.samples())
 
     for key in keys:

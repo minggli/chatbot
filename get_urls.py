@@ -65,4 +65,4 @@ for page in pages:
 
 complete_urls = sorted(list(set(complete_urls)))
 
-web_pages = {k: v for k, v in enumerate(complete_urls) if k < 10}
+web_pages = {k: v for k, v in enumerate(complete_urls)}
