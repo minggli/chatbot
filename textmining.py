@@ -47,10 +47,10 @@ class NHSTextMiner(object):
         if r.status_code == 200:
             soup = BeautifulSoup(r.text, 'html5lib')
             return soup
-        else:
+        elif r.status_code == 404:
             self._failed_urls.append(url)
+        else:
             pass
-
          
     def _cache_get(self):
 
@@ -62,6 +62,7 @@ class NHSTextMiner(object):
             with Pool(50) as p:
                 self._soups = p.map(self._get, self._urls)
 
+            print(self._failed_urls)
             for f_url in self._failed_urls:
                 self._urls.remove(f_url)
                 self._count -= 1
