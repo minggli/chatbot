@@ -57,8 +57,8 @@ class NHSTextMiner(object):
             with Pool(4) as p:
                 merged_output = p.map(self._get, self._urls)
 
-            self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None]
-            self._soups = [pair[0] for pair in merged_output if pair[1] is None]
+            self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None and pair[1] is not None]
+            self._soups = [pair[0] for pair in merged_output if pair[0] is not None and pair[1] is None]
             for i in self._soups:
                 if i == None:
                     print(i)
