@@ -39,6 +39,7 @@ class NHSTextMiner(object):
     def _get(self, url):
 
         """get all web pages and create soup objects ready for information extraction"""
+        failed_urls = list()
 
         r = requests.get(url=url)
 
@@ -59,7 +60,7 @@ class NHSTextMiner(object):
                 print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
             with Pool(10) as p:
-                failed_urls = list()
+                global failed_urls
                 self._soups = p.map(self._get, self._urls)
                 self._failed_urls = failed_urls
 
