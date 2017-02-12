@@ -55,7 +55,7 @@ class NHSTextMiner(object):
             if self._display:
                 print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
-            with Pool(10) as p:
+            with Pool(20) as p:
                 self._soups = p.map(self._get, self._urls)
 
             for f_url in self._failed_urls:
@@ -63,7 +63,7 @@ class NHSTextMiner(object):
                 self._count -= 1
 
             print(len(self._soups), len(self._failed_urls))
-
+            sys.exit()
 
             with open('data/symptom_pages.pkl', 'wb') as filename:
                 pickle.dump(self._soups, filename)
