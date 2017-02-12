@@ -39,7 +39,6 @@ class NHSTextMiner(object):
     def _get(self, url):
 
         """get all web pages and create soup objects ready for information extraction"""
-        failed_urls = list()
 
         r = requests.get(url=url)
 
@@ -49,7 +48,7 @@ class NHSTextMiner(object):
             soup = BeautifulSoup(r.text, 'html5lib')
             return soup
         else:
-            failed_urls.append(url)
+            self._failed_urls.append(url)
 
          
     def _cache_get(self):
@@ -60,11 +59,9 @@ class NHSTextMiner(object):
                 print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
             with Pool(10) as p:
-                global failed_urls
                 self._soups = p.map(self._get, self._urls)
-                self._failed_urls = failed_urls
-
-            print(self._failed_urls)
+                print(self._failed_urls)
+                
             for f_url in self._failed_urls:
                 self._urls.remove(f_url)
                 self._count -= 1
