@@ -24,7 +24,7 @@ class NHSTextMiner(object):
         assert isinstance(urls, list), 'require a list of urls'
         assert isinstance(attrs, dict), 'attributes must be a dictionary'
 
-        urls.append('http://abc.asdasdasd')
+        urls.append('http://www.nhs.uk/conditions/frozen-soulder')
 
         self._urls = urls
         self._failed_urls = list()
