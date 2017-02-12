@@ -46,7 +46,7 @@ class NHSTextMiner(object):
         else:
             return tuple((None, url))
 
-         
+
     def _cache_get(self):
 
         if not os.path.exists('data/symptom_pages.pkl'):
@@ -59,9 +59,7 @@ class NHSTextMiner(object):
 
             self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None and pair[1] is not None]
             self._soups = [pair[0] for pair in merged_output if pair[0] is not None and pair[1] is None]
-            for i in self._soups:
-                if i == None:
-                    print(i)
+
             for f_url in self._failed_urls:
                 self._urls.remove(f_url)
                 self._count -= 1
@@ -82,11 +80,11 @@ class NHSTextMiner(object):
         """get all web pages and create soup objects ready for information extraction"""
 
         self._cache_get()
-
+        
         print('starting to extract information from websites...', flush=True, end='')
         
         self._failed_urls.clear()
-
+        
         for i, page_url in enumerate(self._urls):
 
             page = self._soups[i]
