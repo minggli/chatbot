@@ -47,10 +47,10 @@ class NHSTextMiner(object):
         if r.status_code == 200:
             soup = BeautifulSoup(r.text, 'html5lib')
             return soup
-        elif r.status_code == 404:
-            self._failed_urls.append(url)
         else:
-            pass
+            self._failed_urls.append(url)
+            print(len(self._failed_urls))
+
          
     def _cache_get(self):
 
@@ -59,7 +59,7 @@ class NHSTextMiner(object):
             if self._display:
                 print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
-            with Pool(50) as p:
+            with Pool(10) as p:
                 self._soups = p.map(self._get, self._urls)
 
             print(self._failed_urls)
