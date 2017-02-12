@@ -68,9 +68,6 @@ class NHSTextMiner(object):
                 self._urls.remove(f_url)
                 self._count -= 1
 
-            print(len(self._soups), len(self._failed_urls))
-            sys.exit()
-
             with open('data/symptom_pages.pkl', 'wb') as filename:
                 pickle.dump(self._soups, filename)
             with open('data/symptom_urls.pkl', 'wb') as filename:
