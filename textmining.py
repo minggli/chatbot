@@ -24,6 +24,8 @@ class NHSTextMiner(object):
         assert isinstance(urls, list), 'require a list of urls'
         assert isinstance(attrs, dict), 'attributes must be a dictionary'
 
+        urls.append('http://abc.asdasdasd')
+
         self._urls = urls
         self._failed_urls = list()
         self._attrs = attrs
@@ -55,7 +57,7 @@ class NHSTextMiner(object):
             if self._display:
                 print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
-            with Pool(20) as p:
+            with Pool(50) as p:
                 self._soups = p.map(self._get, self._urls)
 
             for f_url in self._failed_urls:
