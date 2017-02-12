@@ -46,9 +46,9 @@ class NHSTextMiner(object):
             print(r.status_code, r.url)
         if r.status_code == 200:
             soup = BeautifulSoup(r.text, 'html5lib')
-            return soup
+            return tuple(soup, None)
         else:
-            self._failed_urls.append(url)
+            return tuple(None, url)
 
          
     def _cache_get(self):
@@ -58,15 +58,17 @@ class NHSTextMiner(object):
             if self._display:
                 print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
-            with Pool(10) as p:
-                self._soups = p.map(self._get, self._urls)
-                print(self._failed_urls)
-                
+            with Pool(4) as p:
+                merged_output = p.map(self._get, self._urls)
+
+            self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None]
+            self._soups = [pair[0] for pair in merged_output if pair[1] is None]
+
             for f_url in self._failed_urls:
                 self._urls.remove(f_url)
                 self._count -= 1
 
-            print(len(self._soups), len(failed_urls))
+            print(len(self._soups), len(self._failed_urls))
             sys.exit()
 
             with open('data/symptom_pages.pkl', 'wb') as filename:
