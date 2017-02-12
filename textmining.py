@@ -46,9 +46,9 @@ class NHSTextMiner(object):
             print(r.status_code, r.url)
         if r.status_code == 200:
             soup = BeautifulSoup(r.text, 'html5lib')
-            return tuple(soup, None)
+            return tuple((soup, None))
         else:
-            return tuple(None, url)
+            return tuple((None, url))
 
          
     def _cache_get(self):
