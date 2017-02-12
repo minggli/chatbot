@@ -59,7 +59,7 @@ class NHSTextMiner(object):
 
             self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None]
             self._soups = [pair[0] for pair in merged_output if pair[1] is None]
-
+            print(self._failed_urls)
             for f_url in self._failed_urls:
                 self._urls.remove(f_url)
                 self._count -= 1
