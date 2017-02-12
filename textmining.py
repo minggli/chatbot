@@ -4,6 +4,7 @@ import pickle
 import os
 import sys
 import requests
+from multiprocessing import Pool
 from bs4 import BeautifulSoup
 
 sys.setrecursionlimit(30000)
@@ -24,36 +25,45 @@ class NHSTextMiner(object):
         assert isinstance(attrs, dict), 'attributes must be a dictionary'
 
         self._urls = urls
+        self._failed_urls = list()
         self._attrs = attrs
         self._count = len(urls)
         self._soups = list()
         self._display = display
         self._output = dict()
 
-    def _get(self):
+    def _get(self, url):
 
         """get all web pages and create soup objects ready for information extraction"""
+
+        r = requests.get(url=url)
+
+        if self._display:
+            print(r.status_code, r.url)
+        if r.status_code == 200:
+            soup = BeautifulSoup(r.text, 'html5lib')
+            return soup
+        else:
+            self._failed_urls.append(url)
+            pass
+
+         
+    def _cache_get(self):
 
         if not os.path.exists('data/symptom_pages.pkl'):
 
             if self._display:
-                print('page(s) are being downloaded...', flush=True, end='\n')
+                print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
-            failed_urls = list()
+            with Pool(10) as p:
+                self._soups = p.map(self._get, self._urls)
 
-            for url in self._urls:
-                r = requests.get(url=url)
-                if self._display:
-                    print(r.status_code, r.url)
-                if r.status_code == 200:
-                    soup = BeautifulSoup(r.text, 'html5lib')
-                    self._soups.append(soup)
-                else:
-                    failed_urls.append(url)
-
-            for f_url in failed_urls:
+            for f_url in self._failed_urls:
                 self._urls.remove(f_url)
                 self._count -= 1
+
+            print(len(self._soups), len(self._failed_urls))
+
 
             with open('data/symptom_pages.pkl', 'wb') as filename:
                 pickle.dump(self._soups, filename)
@@ -65,14 +75,16 @@ class NHSTextMiner(object):
             with open('data/symptom_urls.pkl', 'rb') as filename:
                 self._urls = pickle.load(filename)
 
+
     def extract(self):
 
         """get all web pages and create soup objects ready for information extraction"""
 
-        self._get()
+        self._cache_get()
 
         print('starting to extract information from websites...', flush=True, end='')
-        failed_urls = list()
+        
+        self._failed_urls.clear()
 
         for i, page_url in enumerate(self._urls):
 
@@ -85,7 +97,7 @@ class NHSTextMiner(object):
                 article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
             
             except AttributeError:
-                failed_urls.append(page_url)
+                self._failed_urls.append(page_url)
                 continue
 
             subj = subj.replace(' - NHS Choices', '')
@@ -106,7 +118,7 @@ class NHSTextMiner(object):
                     e3 = article[j + 2] == self._attrs['article_attributes']['end_t_2']
                 
                 except IndexError:
-                    failed_urls.append(page_url)
+                    self._failed_urls.append(page_url)
                     break
 
                 if s1 and s2 and s3:
@@ -119,7 +131,7 @@ class NHSTextMiner(object):
             content = article[start_idx: end_idx]
 
             if len(content) < 5:
-                failed_urls.append(page_url)
+                self._failed_urls.append(page_url)
                 continue
 
             content.insert(0, subj)
@@ -127,11 +139,11 @@ class NHSTextMiner(object):
 
             self._output[page_url] = content
 
-        for f_url in list(set(failed_urls)):
+        for f_url in list(set(self._failed_urls)):
             self._urls.remove(f_url)
             self._count -= 1
 
-        print('done. {} of {} failed to be extracted.'.format(len(set(failed_urls)), len(self._soups)), flush=True)
+        print('done. {} of {} failed to be extracted.'.format(len(set(self._failed_urls)), len(self._soups)), flush=True)
 
         return self._output
 
