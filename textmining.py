@@ -17,7 +17,7 @@ class NHSTextMiner(object):
 
     """web scrapping module using BeautifulSoup4 and Requests"""
 
-    def __init__(self, urls, attrs, display=False):
+    def __init__(self, urls, attrs, n=4, display=False):
 
         """urls and attrs to be supplied by main and setting."""
 
@@ -25,12 +25,13 @@ class NHSTextMiner(object):
         assert isinstance(attrs, dict), 'attributes must be a dictionary'
 
         self._urls = urls
-        self._failed_urls = list()
         self._attrs = attrs
-        self._count = len(urls)
-        self._soups = list()
         self._display = display
+        self._count = len(urls)
+        self._failed_urls = list()
+        self._soups = list()
         self._output = dict()
+        self._threads = n
 
     def _get(self, url):
 
@@ -47,102 +48,99 @@ class NHSTextMiner(object):
             return tuple((None, url))
 
 
-    def _cache_get(self):
+    def _mp_get(self):
 
-        if not os.path.exists('data/symptom_pages.pkl'):
+        if self._display:
+            print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
 
-            if self._display:
-                print('{0} pages are being downloaded...'.format(len(self._urls)), flush=True, end='\n')
+        with Pool(self._threads) as p:
+            merged_output = p.map(self._get, self._urls)
 
-            with Pool(4) as p:
-                merged_output = p.map(self._get, self._urls)
+        self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None and pair[1] is not None]
+        self._soups = [pair[0] for pair in merged_output if pair[0] is not None and pair[1] is None]
 
-            self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None and pair[1] is not None]
-            self._soups = [pair[0] for pair in merged_output if pair[0] is not None and pair[1] is None]
-
-            for f_url in self._failed_urls:
-                self._urls.remove(f_url)
-                self._count -= 1
-
-            with open('data/symptom_pages.pkl', 'wb') as filename:
-                pickle.dump(self._soups, filename)
-            with open('data/symptom_urls.pkl', 'wb') as filename:
-                pickle.dump(self._urls, filename)
-        else:
-            with open('data/symptom_pages.pkl', 'rb') as filename:
-                self._soups = pickle.load(filename)
-            with open('data/symptom_urls.pkl', 'rb') as filename:
-                self._urls = pickle.load(filename)
-
+        for f_url in self._failed_urls:
+            self._urls.remove(f_url)
+            self._count -= 1
 
     def extract(self):
 
         """get all web pages and create soup objects ready for information extraction"""
 
-        self._cache_get()
-        
-        print('starting to extract information from websites...', flush=True, end='')
-        
-        self._failed_urls.clear()
-        
-        for i, page_url in enumerate(self._urls):
+        if not os.path.exists('data/symptoms.pkl'):
 
-            page = self._soups[i]
-
-            try:
-
-                subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
-                meta = page.find('meta', attrs=self._attrs['desc_attributes']).get('content')
-                article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
+            self._mp_get()
             
-            except AttributeError:
-                self._failed_urls.append(page_url)
-                continue
+            print('starting to extract information from websites...', flush=True, end='')
+            
+            self._failed_urls.clear()
+            
+            for i, page_url in enumerate(self._urls):
 
-            subj = subj.replace(' - NHS Choices', '')
+                page = self._soups[i]
 
-            start_idx = int()
-            end_idx = int()
-
-            for j, value in enumerate(article):
-
-                # using 3 keys each end to identify range of main article
                 try:
 
-                    s1 = article[j] == self._attrs['article_attributes']['start_t_2']
-                    s2 = article[j + 1] == self._attrs['article_attributes']['start_t_1']
-                    s3 = article[j + 2] == self._attrs['article_attributes']['start_t_0']
-                    e1 = article[j] == self._attrs['article_attributes']['end_t_0']
-                    e2 = article[j + 1] == self._attrs['article_attributes']['end_t_1']
-                    e3 = article[j + 2] == self._attrs['article_attributes']['end_t_2']
+                    subj = page.find('meta', attrs=self._attrs['subj_attributes']).get('content')
+                    meta = page.find('meta', attrs=self._attrs['desc_attributes']).get('content')
+                    article = [element.get_text(strip=True) for element in page.find_all(['p', 'li', 'meta'])]
                 
-                except IndexError:
+                except AttributeError:
                     self._failed_urls.append(page_url)
-                    break
+                    continue
 
-                if s1 and s2 and s3:
-                    start_idx = j + 2
+                subj = subj.replace(' - NHS Choices', '')
 
-                if start_idx and e1 and e2 and e3:
-                    end_idx = j
-                    break
+                start_idx = int()
+                end_idx = int()
 
-            content = article[start_idx: end_idx]
+                for j, value in enumerate(article):
 
-            if len(content) < 5:
-                self._failed_urls.append(page_url)
-                continue
+                    # using 3 keys each end to identify range of main article
+                    try:
 
-            content.insert(0, subj)
-            content.insert(1, meta)
+                        s1 = article[j] == self._attrs['article_attributes']['start_t_2']
+                        s2 = article[j + 1] == self._attrs['article_attributes']['start_t_1']
+                        s3 = article[j + 2] == self._attrs['article_attributes']['start_t_0']
+                        e1 = article[j] == self._attrs['article_attributes']['end_t_0']
+                        e2 = article[j + 1] == self._attrs['article_attributes']['end_t_1']
+                        e3 = article[j + 2] == self._attrs['article_attributes']['end_t_2']
+                    
+                    except IndexError:
+                        self._failed_urls.append(page_url)
+                        break
 
-            self._output[page_url] = content
+                    if s1 and s2 and s3:
+                        start_idx = j + 2
 
-        for f_url in list(set(self._failed_urls)):
-            self._urls.remove(f_url)
-            self._count -= 1
+                    if start_idx and e1 and e2 and e3:
+                        end_idx = j
+                        break
 
-        print('done. {} of {} failed to be extracted.'.format(len(set(self._failed_urls)), len(self._soups)), flush=True)
+                content = article[start_idx: end_idx]
+
+                if len(content) < 5:
+                    self._failed_urls.append(page_url)
+                    continue
+
+                content.insert(0, subj)
+                content.insert(1, meta)
+
+                self._output[page_url] = content
+
+            for f_url in list(set(self._failed_urls)):
+                self._urls.remove(f_url)
+                self._count -= 1
+
+            print('done. {} of {} failed to be extracted.'.format(len(set(self._failed_urls)), len(self._soups)), flush=True)
+
+
+            with open('data/symptoms.pkl', 'wb') as f:
+                pickle.dump(obj=self._output, file=f)
+        else:
+
+            with open('data/symptoms.pkl', 'rb') as f:
+                self._output = pickle.load(f)
 
         return self._output
 
