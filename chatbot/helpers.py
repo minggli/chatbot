@@ -11,6 +11,7 @@ __author__ = 'Ming Li'
 
 # web scrapping module for NHS symptoms
 
+
 class NHSTextMiner(object):
 
     """web scrapping module using BeautifulSoup4 and Requests"""
@@ -19,17 +20,30 @@ class NHSTextMiner(object):
 
         """urls and attrs to be supplied by main and setting."""
 
-        assert isinstance(urls, list), 'require a list of urls'
-        assert isinstance(attrs, dict), 'attributes must be a dictionary'
-
-        self._urls = urls
-        self._attrs = attrs
+        self._urls = urls        
+        self.__attrs__ = attrs
+        self._attrs = None
         self._display = display
         self._count = len(urls)
         self._failed_urls = list()
         self._soups = list()
         self._output = dict()
         self._threads = n
+
+
+    @property
+    def __attrs__(self):
+        return self._attrs
+
+    @__attrs__.setter
+    def __attrs__(self, values):
+        if not all([isinstance(values, dict),  len(values) >= 3]):
+            raise TypeError('attributes must be a dictionary and contain'
+                ' desc_attributes, subj_attribtues, and article_attributes.'
+                )
+        else:
+            self._attrs = values
+
 
     def _get(self, url):
 
@@ -240,4 +254,3 @@ class NLPProcessor(object):
     def __lemmatize__(self, doc_object, switch=True):
         assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(' '.join([str(token.lemma_) for token in doc_object])) if switch else doc_object
-
