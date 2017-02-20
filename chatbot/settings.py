@@ -4,7 +4,7 @@
 
 NHS_BASE_URL = 'http://www.nhs.uk'
 API_BASE_URL = '/chatbot/api/v1'
-DATA_LOC = 'data/'
+DATA_LOC = 'cache/'
 
 TEXTMINER = {
     'desc_attributes': {
