@@ -1,34 +1,24 @@
-#!venv/bin/python
+from . import raw_data, NLP_PROCESSOR, mapping, labels, API_BASE_URL
 from flask import Flask, jsonify, abort, make_response, request
-from main import mapping, clf_main
+from ..helpers import NLPProcessor
+from nltk.tokenize import word_tokenize
+from ..engine.naivebayes import NB_classifier, train_model
 
 app = Flask(__name__)
 
-@app.route('/chatbot/api/v1/symptoms', methods=['GET'])
-def show_symptoms_json():
-	return jsonify({'symptoms': {str.lower(key): mapping[key] for key in mapping}})
+nlp = NLPProcessor(attrs=NLP_PROCESSOR)
+processed_data = nlp.process(raw_data)
 
-
-@app.route('/chatbot/api/v1/symptoms/<string:symptom_name>', methods=['GET'])
-def show_symptom(symptom_name):
-
-	symptom_name = str.lower(symptom_name)
-	modified_mapping = {str.lower(key): mapping[key] for key in mapping}
-
-	try:
-		symptom = modified_mapping[symptom_name]
-	except KeyError:
-		abort(404)
-	return jsonify({'symptom': symptom})
+Engine = train_model(processed_data, labels, n=100)
 
 responses = list()
 aggregate_text = list()
 count = 0
 
-
-@app.route('/chatbot/api/v1/ask', methods=['POST'])
-def ask(ambiguity_trials=3):
-
+@app.route(API_BASE_URL + '/ask', methods=['POST'])
+def ask(clf=NB_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
+	"""this function needs completely refactor"""
+	
 	global responses
 	global aggregate_text
 	global count
@@ -36,7 +26,7 @@ def ask(ambiguity_trials=3):
 	question = request.json['question']
 	aggregate_text.append(question)
 
-	output = clf_main(query=' '.join(aggregate_text))
+	output = clf(query=' '.join(aggregate_text), engine=engine, nlp=nlp)
 
 	try:
 		if responses[-1][1] == 0 and 'yes' in question.lower():
@@ -74,7 +64,7 @@ def ask(ambiguity_trials=3):
 		respond_templates = {
 			-1: '\n\nHow can I help you?',
 			-2: 'Can you tell me more about the symptoms?',
-			0: 'Based on what you told me, here is my diagnosis: {0}.'.format(output[0]),
+			0: 'Based on what you told me, here is my best guess: {0}.'.format(output[0]),
 			1: '\n\nWould you like to have NHS leaflet?',
 			2: 'here is the link: {0}'.format(mapping[output[0]]),
 			3: 'Based on what you told me, here are several possible reasons, including: \n\n{0}'.format(output[0]),
@@ -121,4 +111,4 @@ def ask(ambiguity_trials=3):
 
 
 if __name__ == '__main__':
-	app.run(debug=False)
+	app.run(port=5000, debug=False)

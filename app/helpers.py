@@ -1,17 +1,16 @@
-import pip
-import spacy
 import pickle
-import os
-import sys
+import os, sys 
+sys.setrecursionlimit(10000)
+from .settings import DATA_LOC
+import spacy
 import requests
 from multiprocessing import Pool
 from bs4 import BeautifulSoup
 
-sys.setrecursionlimit(30000)
-
 __author__ = 'Ming Li'
 
 # web scrapping module for NHS symptoms
+
 
 class NHSTextMiner(object):
 
@@ -21,11 +20,9 @@ class NHSTextMiner(object):
 
         """urls and attrs to be supplied by main and setting."""
 
-        assert isinstance(urls, list), 'require a list of urls'
-        assert isinstance(attrs, dict), 'attributes must be a dictionary'
-
-        self._urls = urls
-        self._attrs = attrs
+        self._urls = urls        
+        self.__attrs__ = attrs
+        self._attrs = None
         self._display = display
         self._count = len(urls)
         self._failed_urls = list()
@@ -33,11 +30,30 @@ class NHSTextMiner(object):
         self._output = dict()
         self._threads = n
 
+
+    @property
+    def __attrs__(self):
+        return self._attrs
+
+    @__attrs__.setter
+    def __attrs__(self, values):
+        if not all([isinstance(values, dict),  len(values) >= 3]):
+            raise TypeError('attributes must be a dictionary and contain'
+                ' desc_attributes, subj_attribtues, and article_attributes.'
+                )
+        else:
+            self._attrs = values
+
+
     def _get(self, url):
 
         """get all web pages and create soup objects ready for information extraction"""
 
-        r = requests.get(url=url)
+        try:
+            r = requests.get(url=url)
+        except requests.exceptions.ConnectionError:
+            raise RuntimeError('There is no active Internet connection.')
+            sys.exit()
 
         if self._display:
             print(r.status_code, r.url)
@@ -55,7 +71,7 @@ class NHSTextMiner(object):
 
         with Pool(self._threads) as p:
             merged_output = p.map(self._get, self._urls)
-
+            
         self._failed_urls = [pair[1] for pair in merged_output if pair[0] is None and pair[1] is not None]
         self._soups = [pair[0] for pair in merged_output if pair[0] is not None and pair[1] is None]
 
@@ -63,12 +79,13 @@ class NHSTextMiner(object):
             self._urls.remove(f_url)
             self._count -= 1
 
+
     def extract(self):
 
         """get all web pages and create soup objects ready for information extraction"""
 
-        if not os.path.exists('data/symptoms.pkl'):
-
+        if not os.path.exists(DATA_LOC + 'symptoms.pkl'):
+            
             self._mp_get()
             
             print('starting to extract information from websites...', flush=True, end='')
@@ -134,12 +151,10 @@ class NHSTextMiner(object):
 
             print('done. {} of {} failed to be extracted.'.format(len(set(self._failed_urls)), len(self._soups)), flush=True)
 
-
-            with open('data/symptoms.pkl', 'wb') as f:
+            with open(DATA_LOC + 'symptoms.pkl', 'wb') as f:
                 pickle.dump(obj=self._output, file=f)
         else:
-
-            with open('data/symptoms.pkl', 'rb') as f:
+            with open(DATA_LOC + 'symptoms.pkl', 'rb') as f:
                 self._output = pickle.load(f)
 
         return self._output
@@ -203,20 +218,27 @@ class NLPProcessor(object):
             return self._output
 
         elif self._is_dict:
-            print('Using SpaCy\'s NLP language pipeline to process...', end='', flush=True)
-            for document in self._content:
-                self._content[document] = ' '.join(self._pipeline(doc_object=self._content[document]).text.split())
-            self._output = self._content
-            print('done')
-            return self._output
+            if not os.path.exists(DATA_LOC + 'processed_data.pkl'):
+                print('Using SpaCy\'s NLP language pipeline to process...', end='', flush=True)
+                for document in self._content:
+                    self._content[document] = ' '.join(self._pipeline(doc_object=self._content[document]).text.split())
+                self._output = self._content
+                print('done')
+                with open(DATA_LOC + 'processed_data.pkl', 'wb') as filename:
+                    pickle.dump(self._output, filename)
+                return self._output
+            else:
+                with open(DATA_LOC + 'processed_data.pkl', 'rb') as filename:
+                    self._output = pickle.load(filename)
+                    return self._output
 
     def _pipeline(self, doc_object):
         return self.__lemmatize__(
             self.__stop_word__(
-            self.__part_of_speech__(doc_object, parts=self._attrs['nlp_processing']['part_of_speech_include'], 
-            switch=self._attrs['nlp_processing']['pipeline']['pos']), 
-            switch=self._attrs['nlp_processing']['pipeline']['stop']), 
-            switch=self._attrs['nlp_processing']['pipeline']['lemma'])
+            self.__part_of_speech__(doc_object, parts=self._attrs['part_of_speech_include'], 
+            switch=self._attrs['pipeline']['pos']), 
+            switch=self._attrs['pipeline']['stop']), 
+            switch=self._attrs['pipeline']['lemma'])
 
     def __part_of_speech__(self, doc_object, parts, switch=True):
         """filter unrelated parts of speech (POS) and return required parts"""
@@ -232,4 +254,3 @@ class NLPProcessor(object):
     def __lemmatize__(self, doc_object, switch=True):
         assert isinstance(doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(' '.join([str(token.lemma_) for token in doc_object])) if switch else doc_object
-

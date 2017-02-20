@@ -2,14 +2,14 @@
 
 """keys to detect useful information and main article of web pages."""
 
-setting = {
+NHS_BASE_URL = 'http://www.nhs.uk'
+API_BASE_URL = '/chatbot/api/v1'
+DATA_LOC = 'app/cache/'
+
+TEXTMINER = {
     'desc_attributes': {
         'name': 'description'
     },
-    # 'subj_attributes': {
-    #     'name': 'DC.Subject',
-    #     'scheme': 'NHSC.Ontology'
-#   },
     'subj_attributes': {
         'name': 'DC.title'
     },
@@ -20,11 +20,11 @@ setting = {
         'end_t_0': 'Share:',
         'end_t_1': '',
         'end_t_2': ''
-    },
-    'nlp_processing': {
+    }
+}
+
+NLP_PROCESSOR = {
         'pipeline': {'pos': True, 'stop': True, 'lemma': True},
         'part_of_speech_include': {'ADJ', 'DET', 'ADV', 'ADP', 'VERB', 'NOUN', 'PART'}
         # 'part_of_speech_include': {'ADJ', 'DET', 'ADV', 'SPACE', 'CONJ', 'PRON', 'ADP', 'VERB', 'NOUN', 'PART'}
-
-    }
 }
