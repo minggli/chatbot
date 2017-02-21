@@ -1,8 +1,9 @@
 from . import raw_data, NLP_PROCESSOR, mapping, labels, API_BASE_URL
-from flask import Flask, jsonify, abort, make_response, request
 from ..helpers import NLPProcessor
-from nltk.tokenize import word_tokenize
 from ..engine.naivebayes import NB_classifier, train_model
+from flask import Flask, jsonify, abort, make_response, request
+from nltk.tokenize import word_tokenize
+
 
 app = Flask(__name__)
 
@@ -18,7 +19,7 @@ count = 0
 @app.route(API_BASE_URL + '/ask', methods=['POST'])
 def ask(clf=NB_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
 	"""this function needs completely refactor"""
-	
+
 	global responses
 	global aggregate_text
 	global count
@@ -36,7 +37,7 @@ def ask(clf=NB_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
 
 			respond_templates = {
 				-1: '\n\nHow can I help you?',
-				2: 'here is the link: {0}'.format(mapping[output[0]])
+				2: 'here is the link: {0}'.format(mapping[output[0].split(' (')[0]])
 			}
 
 			return make_response(respond_templates[2] + respond_templates[-1])
@@ -64,9 +65,9 @@ def ask(clf=NB_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
 		respond_templates = {
 			-1: '\n\nHow can I help you?',
 			-2: 'Can you tell me more about the symptoms?',
-			0: 'Based on what you told me, here is my best guess: {0}.'.format(output[0]),
+			0: 'Based on what you told me, here is what I think: {0}.'.format(output[0]),
 			1: '\n\nWould you like to have NHS leaflet?',
-			2: 'here is the link: {0}'.format(mapping[output[0]]),
+			2: 'here is the link: {0}'.format(mapping[output[0].split(' (')[0]]),
 			3: 'Based on what you told me, here are several possible reasons, including: \n\n{0}'.format(output[0]),
 			4: '\n\nYou can improve result by describing symptoms further.',
 			5: 'Sorry I don\'t have enough information to help you, you can improve result by describing symptoms further.',

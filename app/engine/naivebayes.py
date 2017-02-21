@@ -1,7 +1,7 @@
+import random
 from ..helpers import NHSTextMiner
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
-import random
 
 
 def wrapper_classifier(func):
