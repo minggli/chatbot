@@ -15,7 +15,9 @@ def extract_index_pages(base_url):
     index = list(string.ascii_uppercase) + ['0-9']
 
     index_urls = [
-        base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
+        base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i)
+        for i in index
+    ]
 
     bs4_objects = list()
 

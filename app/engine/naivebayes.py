@@ -44,6 +44,7 @@ def NB_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
     if options[0][1] > decision_boundary:
         return '{0} ({1:.0%})'.format(options[0][0], options[0][1]), 0
     elif options[0][1] > decision_boundary / 3:
-        return ';\n'.join([pair[0] + ' ({:.0%})'.format(pair[1]) for pair in options]), 1
+        return ';\n'.join([pair[0] + ' ({:.0%})'.format(pair[1])
+                           for pair in options]), 1
     else:
         return None

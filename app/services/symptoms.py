@@ -7,7 +7,10 @@ app = Flask(__name__)
 @app.route(API_BASE_URL + '/symptoms', methods=['GET'])
 def show_symptoms_json():
     """show all symptoms captured from wrapper"""
-    return make_response(jsonify({'symptoms': {str.lower(key): mapping[key] for key in mapping}}), 200)
+    return make_response(
+        jsonify(
+            {'symptoms': {str.lower(key): mapping[key] for key in mapping}}
+        ), 200)
 
 
 @app.route(API_BASE_URL + '/symptoms/<string:symptom_name>', methods=['GET'])

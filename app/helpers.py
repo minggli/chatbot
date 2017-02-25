@@ -1,12 +1,13 @@
 import pickle
 import os
 import sys
-sys.setrecursionlimit(30000)
-from .settings import DATA_LOC
 import spacy
 import requests
 from multiprocessing import Pool
 from bs4 import BeautifulSoup
+from .settings import DATA_LOC
+sys.setrecursionlimit(30000)
+
 
 __author__ = 'Ming Li'
 
@@ -194,11 +195,13 @@ class AdditiveDict(dict):
 
 
 class NLPProcessor(object):
+
     """using SpaCy's features to extract relevance out of raw texts."""
 
     def __init__(self, attrs):
         """takes in raw_string or dictionary resulted from NHSTextMiner"""
-        print('initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
+        print(
+            'initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
         self._nlp = spacy.load('en')
         print('done')
 
