@@ -4,7 +4,8 @@ import requests
 import html5lib
 import string
 import pickle
-import os, sys
+import os
+import sys
 sys.setrecursionlimit(30000)
 import re
 
@@ -13,7 +14,8 @@ def extract_index_pages(base_url):
 
     index = list(string.ascii_uppercase) + ['0-9']
 
-    index_urls = [base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
+    index_urls = [
+        base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
 
     bs4_objects = list()
 
@@ -23,7 +25,8 @@ def extract_index_pages(base_url):
         except FileExistsError:
             pass
 
-        print('constructing {} skeleton of symptom pages...'.format(base_url), end='\n')
+        print('constructing {} skeleton of symptom pages...'.format(
+            base_url), end='\n')
 
         for url in index_urls:
             r = requests.get(url=url)
@@ -58,6 +61,6 @@ def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
 
 def sorted_urls(base_url):
     complete_urls = [extract_hyperlinks(page=p, base_url=base_url)
-    for p in extract_index_pages(base_url=base_url)][0]
+                     for p in extract_index_pages(base_url=base_url)][0]
     sorted_urls = sorted(list(set(complete_urls)))
     return sorted_urls

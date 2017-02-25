@@ -15,12 +15,13 @@ def wrapper_classifier(func):
 
 @wrapper_classifier
 def train_model(input_data, label, n=100):
-    # TODO better way to 
+    # TODO better way to
     print('starting to generate training data...', end='', flush=True)
     shuffled_feature_set = list()
     for key in input_data:
         words = word_tokenize(input_data[key])
-        row = [tuple((NHSTextMiner.word_feat(random.sample(words, 100)), label[key])) for r in range(n)]
+        row = [tuple((NHSTextMiner.word_feat(random.sample(
+            words, 100)), label[key])) for r in range(n)]
         shuffled_feature_set += row
     return shuffled_feature_set
 
