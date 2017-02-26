@@ -1,21 +1,24 @@
+"""
+    helpers
+
+    web scrapping module and NLP processor
+"""
+
 import pickle
 import os
 import sys
 import spacy
 import requests
+
 from multiprocessing import Pool
 from bs4 import BeautifulSoup
+
 from .settings import DATA_LOC
+
 sys.setrecursionlimit(30000)
 
 
-__author__ = 'Ming Li'
-
-# web scrapping module for NHS symptoms
-
-
 class NHSTextMiner(object):
-
     """web scrapping module using BeautifulSoup4 and Requests"""
 
     def __init__(self, urls, attrs, n=4, display=False):
@@ -37,7 +40,7 @@ class NHSTextMiner(object):
 
     @__attrs__.setter
     def __attrs__(self, values):
-        if not all([isinstance(values, dict),  len(values) >= 3]):
+        if not all([isinstance(values, dict), len(values) >= 3]):
             raise TypeError('attributes must be a dictionary and contain'
                             ' desc_attributes, subj_attribtues, and article_attributes.'
                             )
@@ -51,7 +54,6 @@ class NHSTextMiner(object):
             r = requests.get(url=url)
         except requests.exceptions.ConnectionError:
             raise RuntimeError('There is no active Internet connection.')
-            sys.exit()
 
         if self._display:
             print(r.status_code, r.url)
@@ -62,7 +64,6 @@ class NHSTextMiner(object):
             return tuple((None, url))
 
     def _mp_get(self):
-
         if self._display:
             print('{0} pages are being downloaded...'.format(
                 len(self._urls)), flush=True, end='\n')
@@ -92,15 +93,12 @@ class NHSTextMiner(object):
             self._failed_urls.clear()
 
             for i, page_url in enumerate(self._urls):
-
                 page = self._soups[i]
-
                 try:
-
                     subj = page.find('meta', attrs=self._attrs[
-                                     'subj_attributes']).get('content')
+                        'subj_attributes']).get('content')
                     meta = page.find('meta', attrs=self._attrs[
-                                     'desc_attributes']).get('content')
+                        'desc_attributes']).get('content')
                     article = [element.get_text(
                         strip=True) for element in page.find_all(['p', 'li', 'meta'])]
 
@@ -109,28 +107,25 @@ class NHSTextMiner(object):
                     continue
 
                 subj = subj.replace(' - NHS Choices', '')
-
                 start_idx = int()
                 end_idx = int()
 
                 for j, value in enumerate(article):
-
                     # using 3 keys each end to identify range of main article
                     try:
-
-                        s1 = article[j] == self._attrs[
+                        s1 = article[
+                                 j] == self._attrs[
                             'article_attributes']['start_t_2']
                         s2 = article[
-                            j + 1] == self._attrs['article_attributes']['start_t_1']
+                                 j + 1] == self._attrs['article_attributes']['start_t_1']
                         s3 = article[
-                            j + 2] == self._attrs['article_attributes']['start_t_0']
+                                 j + 2] == self._attrs['article_attributes']['start_t_0']
                         e1 = article[j] == self._attrs[
                             'article_attributes']['end_t_0']
                         e2 = article[
-                            j + 1] == self._attrs['article_attributes']['end_t_1']
+                                 j + 1] == self._attrs['article_attributes']['end_t_1']
                         e3 = article[
-                            j + 2] == self._attrs['article_attributes']['end_t_2']
-
+                                 j + 2] == self._attrs['article_attributes']['end_t_2']
                     except IndexError:
                         self._failed_urls.append(page_url)
                         break
@@ -170,7 +165,8 @@ class NHSTextMiner(object):
 
     @staticmethod
     def cleanse(words, removals='''!"#$%&()*+/;<=>?@[\]^_`{|}~.,:'''):
-        return [word.encode('utf-8').decode('ascii', 'ignore').translate(str.maketrans(removals, ' ' * len(removals))).replace('\xa0', ' ') for word in words]
+        return [word.encode('utf-8').decode('ascii', 'ignore').translate(
+            str.maketrans(removals, ' ' * len(removals))).replace('\xa0', ' ') for word in words]
 
     @staticmethod
     def word_feat(words):
@@ -178,7 +174,6 @@ class NHSTextMiner(object):
 
 
 class AdditiveDict(dict):
-
     def __init__(self, iterable=None):
         if not iterable:
             pass
@@ -195,11 +190,9 @@ class AdditiveDict(dict):
 
 
 class NLPProcessor(object):
-
     """using SpaCy's features to extract relevance out of raw texts."""
 
     def __init__(self, attrs):
-        """takes in raw_string or dictionary resulted from NHSTextMiner"""
         print(
             'initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
         self._nlp = spacy.load('en')
@@ -247,18 +240,18 @@ class NLPProcessor(object):
                     return self._output
 
     def _pipeline(self, doc_object):
-        return self.__lemmatize__(
-            self.__stop_word__(
-                self.__part_of_speech__(doc_object, parts=self._attrs['part_of_speech_include'],
-                                        switch=self._attrs['pipeline']['pos']),
-                switch=self._attrs['pipeline']['stop']),
+        return self.__lemmatize__(self.__stop_word__(self.__part_of_speech__(
+            doc_object, parts=self._attrs['part_of_speech_include'],
+            switch=self._attrs['pipeline']['pos']),
+            switch=self._attrs['pipeline']['stop']),
             switch=self._attrs['pipeline']['lemma'])
 
     def __part_of_speech__(self, doc_object, parts, switch=True):
         """filter unrelated parts of speech (POS) and return required parts"""
         assert isinstance(
             doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
-        return self._nlp(' '.join([str(token) for token in doc_object if token.pos_ in parts])) if switch else doc_object
+        return self._nlp(
+            ' '.join([str(token) for token in doc_object if token.pos_ in parts])) if switch else doc_object
 
     def __stop_word__(self, doc_object, switch=True):
         """only remove stop words when it does not form part of phrase e.g. back pain."""
@@ -266,7 +259,8 @@ class NLPProcessor(object):
             doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         noun_chunks = ' '.join(
             set([phrase.text for phrase in doc_object.noun_chunks]))
-        return self._nlp(' '.join([str(token) for token in doc_object if token.is_stop is False or token.text in noun_chunks])) if switch else doc_object
+        return self._nlp(' '.join([str(token) for token in doc_object if
+                                   token.is_stop is False or token.text in noun_chunks])) if switch else doc_object
 
     def __lemmatize__(self, doc_object, switch=True):
         assert isinstance(

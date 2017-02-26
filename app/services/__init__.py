@@ -1,6 +1,6 @@
 from .. import settings
 from ..map_urls import sorted_urls
-from ..helpers import NHSTextMiner, NLPProcessor
+from ..helpers import NHSTextMiner
 
 TEXTMINER = settings.TEXTMINER
 NHS_BASE_URL = settings.NHS_BASE_URL

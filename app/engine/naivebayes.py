@@ -1,7 +1,9 @@
 import random
-from ..helpers import NHSTextMiner
+
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
+
+from ..helpers import NHSTextMiner
 
 
 def wrapper_classifier(func):
@@ -15,7 +17,7 @@ def wrapper_classifier(func):
 
 @wrapper_classifier
 def train_model(input_data, label, n=100):
-    # TODO better way to
+    # TODO better algorithm
     print('starting to generate training data...', end='', flush=True)
     shuffled_feature_set = list()
     for key in input_data:
@@ -26,7 +28,7 @@ def train_model(input_data, label, n=100):
     return shuffled_feature_set
 
 
-def NB_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
+def nb_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
     """spell out """
     options = list()
     words = NHSTextMiner.word_feat(word_tokenize(nlp.process(query)))
