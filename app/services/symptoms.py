@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, abort, make_response, request
+from flask import Flask, jsonify, abort, make_response
+
 from . import mapping, API_BASE_URL
 
 app = Flask(__name__)

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, abort, make_response, request
+from flask import Flask, make_response, request
 
 from . import raw_data, NLP_PROCESSOR, mapping, labels, API_BASE_URL
 from ..helpers import NLPProcessor
