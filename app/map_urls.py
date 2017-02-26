@@ -1,30 +1,35 @@
-from bs4 import BeautifulSoup
-from .settings import DATA_LOC
-import requests
-import html5lib
+"""
+    map_urls
+
+    provide a mapping of useful urls that can be used as training data.
+"""
+
+import os
+import sys
+import re
 import string
 import pickle
-import os, sys
+import requests
+
+from bs4 import BeautifulSoup
+
+from .settings import DATA_LOC
+
 sys.setrecursionlimit(30000)
-import re
 
 
 def extract_index_pages(base_url):
-
+    """obtain BodyMap A-Z web pages to extract skeleton of symptom pages."""
     index = list(string.ascii_uppercase) + ['0-9']
-
     index_urls = [base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
-
     bs4_objects = list()
-
     if not os.path.exists(DATA_LOC + 'index_pages.pkl'):
         try:
             os.mkdir(DATA_LOC)
         except FileExistsError:
             pass
-
-        print('constructing {} skeleton of symptom pages...'.format(base_url), end='\n')
-
+        print('constructing {} skeleton of symptom pages...'.format(
+            base_url), end='\n')
         for url in index_urls:
             r = requests.get(url=url)
             print(r.status_code, r.url)
@@ -36,12 +41,11 @@ def extract_index_pages(base_url):
     else:
         with open(DATA_LOC + 'index_pages.pkl', 'rb') as f:
             bs4_objects = pickle.load(f)
-
     return bs4_objects
 
 
 def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
-
+    """extract hyperlinks from pages, if they are symptom-related leaflets."""
     urls = list()
     for element in page.find_all(['a']):
         url = re.findall(pattern=regex, string=element.get('href'))
@@ -57,7 +61,7 @@ def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
 
 
 def sorted_urls(base_url):
+    """produce a sorted list of unique urls alphabetically."""
     complete_urls = [extract_hyperlinks(page=p, base_url=base_url)
-    for p in extract_index_pages(base_url=base_url)][0]
-    sorted_urls = sorted(list(set(complete_urls)))
-    return sorted_urls
+                     for p in extract_index_pages(base_url=base_url)][0]
+    return sorted(list(set(complete_urls)))
