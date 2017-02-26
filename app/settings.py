@@ -28,7 +28,7 @@ TEXTMINER = {
     }
 }
 
-NLP_PROCESSOR = {
+NLP = {
 
     'pipeline': {
         'pos': True,

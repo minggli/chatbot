@@ -1,12 +1,12 @@
 from flask import Flask, make_response, request
 
-from . import raw_data, NLP_PROCESSOR, mapping, labels, API_BASE_URL
+from . import raw_data, NLP, mapping, labels, API_BASE_URL
 from ..helpers import NLPProcessor
 from ..engine.naivebayes import nb_classifier, train_model
 
 app = Flask(__name__)
 
-nlp = NLPProcessor(attrs=NLP_PROCESSOR)
+nlp = NLPProcessor(attrs=NLP)
 processed_data = nlp.process(raw_data)
 Engine = train_model(processed_data, labels, n=100)
 
@@ -43,11 +43,12 @@ def ask(clf=nb_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
             return make_response(respond_templates[2] + respond_templates[-1])
 
         elif responses[-1][1] == 0 and 'yes' not in question.lower():
+
             responses = list()
             aggregate_text = list()
 
             respond_templates = {
-                -1: '\n\nHow can I help you?',
+                -1: '\n\nHow can I help you?'
             }
 
             return make_response(respond_templates[-1])

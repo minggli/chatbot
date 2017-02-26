@@ -17,7 +17,7 @@ def wrapper_classifier(func):
 
 @wrapper_classifier
 def train_model(input_data, label, n=100):
-    # TODO better algorithm
+    # TODO investigate better algorithm e.g. LDA and Reinforcement NN
     print('starting to generate training data...', end='', flush=True)
     shuffled_feature_set = list()
     for key in input_data:
@@ -29,7 +29,7 @@ def train_model(input_data, label, n=100):
 
 
 def nb_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
-    """spell out """
+    """spell out most probable diseases and respective percentages."""
     options = list()
     words = NHSTextMiner.word_feat(word_tokenize(nlp.process(query)))
     print('understanding {}...'.format(words))

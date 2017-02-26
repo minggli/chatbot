@@ -113,19 +113,18 @@ class NHSTextMiner(object):
                 for j, value in enumerate(article):
                     # using 3 keys each end to identify range of main article
                     try:
-                        s1 = article[
-                                 j] == self._attrs[
-                            'article_attributes']['start_t_2']
-                        s2 = article[
-                                 j + 1] == self._attrs['article_attributes']['start_t_1']
-                        s3 = article[
-                                 j + 2] == self._attrs['article_attributes']['start_t_0']
-                        e1 = article[j] == self._attrs[
-                            'article_attributes']['end_t_0']
-                        e2 = article[
-                                 j + 1] == self._attrs['article_attributes']['end_t_1']
-                        e3 = article[
-                                 j + 2] == self._attrs['article_attributes']['end_t_2']
+                        s1 = article[j] == \
+                             self._attrs['article_attributes']['start_t_2']
+                        s2 = article[j + 1] == \
+                             self._attrs['article_attributes']['start_t_1']
+                        s3 = article[j + 2] == \
+                             self._attrs['article_attributes']['start_t_0']
+                        e1 = article[j] == \
+                             self._attrs['article_attributes']['end_t_0']
+                        e2 = article[j + 1] == \
+                             self._attrs['article_attributes']['end_t_1']
+                        e3 = article[j + 2] == \
+                             self._attrs['article_attributes']['end_t_2']
                     except IndexError:
                         self._failed_urls.append(page_url)
                         break
