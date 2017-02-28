@@ -25,7 +25,6 @@ class NHSTextMiner(object):
         """urls and attrs to be supplied by main and setting."""
 
         self._urls = urls
-        self.__attrs__ = attrs
         self._attrs = None
         self._display = display
         self._count = len(urls)
@@ -33,6 +32,9 @@ class NHSTextMiner(object):
         self._soups = list()
         self._output = dict()
         self._threads = n
+        
+        self.__attrs__ = attrs
+
 
     @property
     def __attrs__(self):
