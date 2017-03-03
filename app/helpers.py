@@ -35,7 +35,6 @@ class NHSTextMiner(object):
         
         self.__attrs__ = attrs
 
-
     @property
     def __attrs__(self):
         return self._attrs
