@@ -3,10 +3,8 @@ a naive chatbot that sometimes misdiagnoses.
 
 This retrieval-based bot uses publicly available health information and a set of NLP techniques to generate indicative diagnosis and NHS leaflet for that diagnosis. The result is not to be treated as medical advice.
 
-## Virtualenv Installation
-You will need [virtualenv](https://virtualenv.pypa.io/en/stable/installation/) to create the environment underpinning this chatbot.
-
-Run `./install.sh` at chatbot/. This will create a virtualenv instance and install all components required.
+## Installation
+Run `./install.sh` at ./chatbot/. This will create a virtualenv instance and install all components required.
 
 ## Running chatbot
 Within virtualenv venv (`source venv/bin/activate`), you can launch separate service: 
