@@ -36,8 +36,8 @@ def extract_index_pages(base_url):
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html5lib')
                 bs4_objects.append(soup)
-        with open(DATA_LOC + 'index_pages.pkl', 'wb') as filename:
-            pickle.dump(bs4_objects, filename)
+        with open(DATA_LOC + 'index_pages.pkl', 'wb') as f:
+            pickle.dump(bs4_objects, f)
     else:
         with open(DATA_LOC + 'index_pages.pkl', 'rb') as f:
             bs4_objects = pickle.load(f)
@@ -62,6 +62,7 @@ def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
 
 def sorted_urls(base_url):
     """produce a sorted list of unique urls alphabetically."""
-    complete_urls = [extract_hyperlinks(page=p, base_url=base_url)
-                     for p in extract_index_pages(base_url=base_url)][0]
-    return sorted(list(set(complete_urls)))
+    nested_list = [extract_hyperlinks(page=p, base_url=base_url)
+                     for p in extract_index_pages(base_url=base_url)]
+    unravelled_list = [url for l in nested_list for url in l]
+    return sorted(list(set(unravelled_list)))
