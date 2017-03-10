@@ -1,4 +1,4 @@
-appdirs==1.4.0
+appdirs>=1.4.0
 argh==0.26.2
 beautifulsoup4==4.5.3
 bs4==0.0.1

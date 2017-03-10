@@ -1,3 +1,4 @@
+pip3 install --upgrade pip
 pip3 install virtualenv
 virtualenv venv
 venv/bin/pip3 install -r requirements.txt
