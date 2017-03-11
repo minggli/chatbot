@@ -13,7 +13,7 @@ Within virtualenv venv (`source venv/bin/activate`), you can launch separate ser
 
 `python3 -m app.services.symptoms`
 
-It takes approx. 10 minutes to launch `ask` but for the first time, it will take longer as it needs to download, process and cache web data.
+For the first time running either service, it will take longer than usual as it needs to download, process and cache web data. Afterwards, it takes around 5 minutes to launch `ask` and instantly for `symptoms`.
 
 ## API Endpoints
 Following endpoints are available to consume:
