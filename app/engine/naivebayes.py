@@ -6,16 +6,6 @@ from nltk.classify import NaiveBayesClassifier
 from . import NHSTextMiner, NLPProcessor, NLP, raw_data, labels
 
 
-def wrapper_classifier(func):
-    def wrapper(*args, **kwargs):
-        print('training classifier...', end='\n', flush=True)
-        trained_clf = NaiveBayesClassifier.train(func(*args, **kwargs))
-        print('done', flush=True)
-        return trained_clf
-    return wrapper
-
-
-@wrapper_classifier
 def train_model(input_data, label, n=100, sample_size=.8):
     # TODO investigate different algorithm e.g. TF-IDF and Reinforcement NN
     print('starting to generate training data...', end='', flush=True)
@@ -25,7 +15,11 @@ def train_model(input_data, label, n=100, sample_size=.8):
         row = [tuple((NHSTextMiner.word_feat(random.sample(
             words, int(sample_size * len(words)))), label[key])) for r in range(n)]
         shuffled_feature_set += row
-    return shuffled_feature_set
+    print('done', flush=True)
+    print('training classifier...', end='\n', flush=True)
+    trained_clf = NaiveBayesClassifier.train(shuffled_feature_set)
+    print('done', flush=True)
+    return trained_clf
 
 
 def naive_bayes_classifier(query, engine, decision_boundary=.8, limit=5):
@@ -53,4 +47,4 @@ def naive_bayes_classifier(query, engine, decision_boundary=.8, limit=5):
 
 nlp = NLPProcessor(attrs=NLP)
 processed_data = nlp.process(raw_data)
-Engine = train_model(processed_data, labels, n=100, sample_size=0.7)
+Engine = train_model(processed_data, labels, n=100, sample_size=0.4)

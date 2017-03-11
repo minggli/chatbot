@@ -10,4 +10,7 @@ if not texts:
 nlp = NLPProcessor(attrs=NLP)
 
 for token in nlp._nlp(texts):
-    print("{0:<15} :{1:<10} {2:>5}: {3}".format(token.text, token.pos_, 'post-processing', nlp.process(token.text)))
+    print("{0:<15} :{1:<10} {2:>5}: {3}".format(
+        token.text, token.pos_, 'post-processing', nlp.process(token.text)
+        )
+    )
