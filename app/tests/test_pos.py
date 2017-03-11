@@ -3,7 +3,7 @@ import sys
 from ..helpers import NLPProcessor
 from ..settings import NLP
 
-texts = sys.argv[1]
+texts = str(sys.argv[1])
 if not texts:
     sys.exit()
 
