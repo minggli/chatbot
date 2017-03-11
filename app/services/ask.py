@@ -75,7 +75,7 @@ def ask(clf=naive_bayes_classifier, engine=Engine, ambiguity_trials=3):
                 .format(output[0]),
             1: '\n\nWould you like to have NHS leaflet?',
             2: 'here is the link: {0}'
-                .format(leaflets[output[0].split(' (')[0]]),
+                .format(leaflets[output[0].split(' (~')[0]]),
             3: 'Based on what you told me, here are several possible reasons'
                ', including: \n\n{0}'.format(output[0]),
             4: '\n\nYou can improve result by describing symptoms further.',
