@@ -1,29 +1,35 @@
-from flask import Flask, make_response, request
+from flask import Flask, make_response, abort, request
 
-from . import raw_data, NLP, mapping, labels, API_BASE_URL
-from ..helpers import NLPProcessor
-from ..engine.naivebayes import nb_classifier, train_model
+from . import API_BASE_URL
+from ..engine import nlp, leaflets
+from ..engine.naivebayes import Engine, naive_bayes_classifier
 
 app = Flask(__name__)
 
-nlp = NLPProcessor(attrs=NLP)
-processed_data = nlp.process(raw_data)
-Engine = train_model(processed_data, labels, n=100)
-
+# Previous sessions should store at client, this temporary hack only serves as a prototype.
 responses = list()
 aggregate_text = list()
 count = 0
 
 
+@app.errorhandler(400)
+def symptom_not_found(error):
+    return make_response('accepts a json e.g. {"question": "description of symptoms"}.', 400)
+
+
 @app.route(API_BASE_URL + '/ask', methods=['POST'])
-def ask(clf=nb_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
+def ask(clf=naive_bayes_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
     """this function needs completely refactor"""
 
+    # Previous sessions should store at client, this temporary hack only serves as a prototype.
     global responses
     global aggregate_text
     global count
 
-    question = request.json['question']
+    question = request.json.get('question', None)
+    if not question:
+        abort(400)
+
     aggregate_text.append(question)
 
     output = clf(query=' '.join(aggregate_text), engine=engine, nlp=nlp)
@@ -37,7 +43,7 @@ def ask(clf=nb_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
             respond_templates = {
                 -1: '\n\nHow can I help you?',
                 2: 'here is the link: {0}'
-                    .format(mapping[output[0].split(' (')[0]])
+                    .format(leaflets[output[0].split(' (')[0]])
             }
 
             return make_response(respond_templates[2] + respond_templates[-1])
@@ -69,7 +75,7 @@ def ask(clf=nb_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
                 .format(output[0]),
             1: '\n\nWould you like to have NHS leaflet?',
             2: 'here is the link: {0}'
-                .format(mapping[output[0].split(' (')[0]]),
+                .format(leaflets[output[0].split(' (')[0]]),
             3: 'Based on what you told me, here are several possible reasons'
                ', including: \n\n{0}'.format(output[0]),
             4: '\n\nYou can improve result by describing symptoms further.',

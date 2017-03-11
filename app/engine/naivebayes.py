@@ -1,9 +1,11 @@
+import os
 import random
+import pickle
 
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
-from ..helpers import NHSTextMiner
+from . import NHSTextMiner, processed_data, labels, DATA_LOC
 
 
 def wrapper_classifier(func):
@@ -16,19 +18,30 @@ def wrapper_classifier(func):
 
 
 @wrapper_classifier
-def train_model(input_data, label, n=100):
-    # TODO investigate better algorithm e.g. LDA and Reinforcement NN
+def train_model(input_data, label, n=100, sample_size=.8):
+    # TODO investigate different algorithm e.g. TF-IDF and Reinforcement NN
     print('starting to generate training data...', end='', flush=True)
     shuffled_feature_set = list()
     for key in input_data:
         words = word_tokenize(input_data[key])
         row = [tuple((NHSTextMiner.word_feat(random.sample(
-            words, 100)), label[key])) for r in range(n)]
+            words, int(sample_size * len(words)))), label[key])) for r in range(n)]
         shuffled_feature_set += row
     return shuffled_feature_set
 
 
-def nb_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
+if not os.path.exists(DATA_LOC + 'engine.pkl'):
+    Engine = train_model(processed_data, labels, n=100, sample_size=0.8)
+    with open(DATA_LOC + 'engine.pkl', 'wb') as f:
+        pickle.dump(Engine, f)
+else:
+    print('loading cached engine...', flush=True, end='\n')
+    with open(DATA_LOC + 'engine.pkl', 'rb') as f:
+        Engine = pickle.load(f)
+    print('done', flush=True)
+
+
+def naive_bayes_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
     """spell out most probable diseases and respective percentages."""
     options = list()
     words = NHSTextMiner.word_feat(word_tokenize(nlp.process(query)))
@@ -50,3 +63,4 @@ def nb_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
                            for pair in options]), 1
     else:
         return None
+

@@ -4,10 +4,10 @@
     web scrapping module and NLP processor
 """
 
-import pickle
 import os
 import sys
 import spacy
+import pickle
 import requests
 
 from multiprocessing import Pool
@@ -16,12 +16,13 @@ from bs4 import BeautifulSoup
 from .settings import DATA_LOC
 
 sys.setrecursionlimit(30000)
+# TODO find a better way to cache BeautifulSoup objects
 
 
 class NHSTextMiner(object):
     """web scrapping module using BeautifulSoup4 and Requests"""
 
-    def __init__(self, urls, attrs, n=4, display=False):
+    def __init__(self, urls, attrs, threads=4, display=False):
         """urls and attrs to be supplied by main and setting."""
 
         self._urls = urls
@@ -31,8 +32,8 @@ class NHSTextMiner(object):
         self._failed_urls = list()
         self._soups = list()
         self._output = dict()
-        self._threads = n
-        
+        self._threads = threads
+
         self.__attrs__ = attrs
 
     @property
@@ -43,7 +44,8 @@ class NHSTextMiner(object):
     def __attrs__(self, values):
         if not all([isinstance(values, dict), len(values) >= 3]):
             raise TypeError('attributes must be a dictionary and contain'
-                            ' desc_attributes, subj_attribtues, and article_attributes.'
+                            ' desc_attributes, subj_attribtues, and '
+                            'article_attributes.'
                             )
         else:
             self._attrs = values
@@ -65,6 +67,7 @@ class NHSTextMiner(object):
             return tuple((None, url))
 
     def _mp_get(self):
+        """multiprocess _get function for performance."""
         if self._display:
             print('{0} pages are being downloaded...'.format(
                 len(self._urls)), flush=True, end='\n')
@@ -115,17 +118,17 @@ class NHSTextMiner(object):
                     # using 3 keys each end to identify range of main article
                     try:
                         s1 = article[j] == \
-                             self._attrs['article_attributes']['start_t_2']
+                            self._attrs['article_attributes']['start_t_2']
                         s2 = article[j + 1] == \
-                             self._attrs['article_attributes']['start_t_1']
+                            self._attrs['article_attributes']['start_t_1']
                         s3 = article[j + 2] == \
-                             self._attrs['article_attributes']['start_t_0']
+                            self._attrs['article_attributes']['start_t_0']
                         e1 = article[j] == \
-                             self._attrs['article_attributes']['end_t_0']
+                            self._attrs['article_attributes']['end_t_0']
                         e2 = article[j + 1] == \
-                             self._attrs['article_attributes']['end_t_1']
+                            self._attrs['article_attributes']['end_t_1']
                         e3 = article[j + 2] == \
-                             self._attrs['article_attributes']['end_t_2']
+                            self._attrs['article_attributes']['end_t_2']
                     except IndexError:
                         self._failed_urls.append(page_url)
                         break
@@ -174,6 +177,7 @@ class NHSTextMiner(object):
 
 
 class AdditiveDict(dict):
+
     def __init__(self, iterable=None):
         if not iterable:
             pass
@@ -193,8 +197,7 @@ class NLPProcessor(object):
     """using SpaCy's features to extract relevance out of raw texts."""
 
     def __init__(self, attrs):
-        print(
-            'initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
+        print('initiating SpaCy\'s NLP language pipeline...', end='', flush=True)
         self._nlp = spacy.load('en')
         print('done')
 

@@ -29,7 +29,6 @@ TEXTMINER = {
 }
 
 NLP = {
-
     'pipeline': {
         'pos': True,
         'stop': True,
@@ -38,5 +37,4 @@ NLP = {
     'part_of_speech_include': {
         'ADJ', 'DET', 'ADV', 'ADP', 'VERB', 'NOUN', 'PART'
     }
-    # 'part_of_speech_include': {'ADJ', 'DET', 'ADV', 'SPACE', 'CONJ', 'PRON', 'ADP', 'VERB', 'NOUN', 'PART'}
 }

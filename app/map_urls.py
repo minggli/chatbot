@@ -21,7 +21,8 @@ sys.setrecursionlimit(30000)
 def extract_index_pages(base_url):
     """obtain BodyMap A-Z web pages to extract skeleton of symptom pages."""
     index = list(string.ascii_uppercase) + ['0-9']
-    index_urls = [base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
+    index_urls = [
+        base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
     bs4_objects = list()
     if not os.path.exists(DATA_LOC + 'index_pages.pkl'):
         try:
@@ -63,6 +64,6 @@ def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
 def sorted_urls(base_url):
     """produce a sorted list of unique urls alphabetically."""
     nested_list = [extract_hyperlinks(page=p, base_url=base_url)
-                     for p in extract_index_pages(base_url=base_url)]
+                   for p in extract_index_pages(base_url=base_url)]
     unravelled_list = [url for l in nested_list for url in l]
     return sorted(list(set(unravelled_list)))
