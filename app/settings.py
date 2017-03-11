@@ -34,7 +34,5 @@ NLP = {
         'stop': True,
         'lemma': True
     },
-    'part_of_speech_include': {
-        'ADJ', 'DET', 'ADV', 'ADP', 'VERB', 'NOUN', 'PART'
-    }
+    'part_of_speech_exclude': ['ADP', 'PUNCT', 'DET', 'CONJ', 'PART', 'PRON', 'SPACE']
 }

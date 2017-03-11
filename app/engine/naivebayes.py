@@ -1,11 +1,9 @@
-import os
 import random
-import pickle
 
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
-from . import NHSTextMiner, NLPProcessor, DATA_LOC, NLP, raw_data, labels
+from . import NHSTextMiner, NLPProcessor, NLP, raw_data, labels
 
 
 def wrapper_classifier(func):
@@ -28,20 +26,6 @@ def train_model(input_data, label, n=100, sample_size=.8):
             words, int(sample_size * len(words)))), label[key])) for r in range(n)]
         shuffled_feature_set += row
     return shuffled_feature_set
-
-
-if not os.path.exists(DATA_LOC + 'engine.pkl'):
-    nlp = NLPProcessor(attrs=NLP)
-    processed_data = nlp.process(raw_data)
-    Engine = train_model(processed_data, labels, n=100, sample_size=0.4)
-    with open(DATA_LOC + 'engine.pkl', 'wb') as f:
-        pickle.dump(Engine, f)
-else:
-    print('loading cached engine...', flush=True, end='\n')
-    with open(DATA_LOC + 'engine.pkl', 'rb') as f:
-        Engine = pickle.load(f)
-    nlp = NLPProcessor(attrs=NLP)
-    print('done', flush=True)
 
 
 def naive_bayes_classifier(query, engine, decision_boundary=.8, limit=5):
@@ -67,3 +51,6 @@ def naive_bayes_classifier(query, engine, decision_boundary=.8, limit=5):
     else:
         return None
 
+nlp = NLPProcessor(attrs=NLP)
+processed_data = nlp.process(raw_data)
+Engine = train_model(processed_data, labels, n=100, sample_size=0.7)

@@ -244,7 +244,7 @@ class NLPProcessor(object):
 
     def _pipeline(self, doc_object):
         return self.__lemmatize__(self.__stop_word__(self.__part_of_speech__(
-            doc_object, parts=self._attrs['part_of_speech_include'],
+            doc_object, parts=self._attrs['part_of_speech_exclude'],
             switch=self._attrs['pipeline']['pos']),
             switch=self._attrs['pipeline']['stop']),
             switch=self._attrs['pipeline']['lemma'])
@@ -254,7 +254,7 @@ class NLPProcessor(object):
         assert isinstance(
             doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(
-            ' '.join([str(token) for token in doc_object if token.pos_ in parts])) if switch else doc_object
+            ' '.join([token.text for token in doc_object if token.pos_ not in parts])) if switch else doc_object
 
     def __stop_word__(self, doc_object, switch=True):
         """only remove stop words when it does not form part of phrase e.g. back pain."""
@@ -262,10 +262,10 @@ class NLPProcessor(object):
             doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         noun_chunks = ' '.join(
             set([phrase.text for phrase in doc_object.noun_chunks]))
-        return self._nlp(' '.join([str(token) for token in doc_object if
+        return self._nlp(' '.join([token.text for token in doc_object if
                                    token.is_stop is False or token.text in noun_chunks])) if switch else doc_object
 
     def __lemmatize__(self, doc_object, switch=True):
         assert isinstance(
             doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
-        return self._nlp(' '.join([str(token.lemma_) for token in doc_object])) if switch else doc_object
+        return self._nlp(' '.join([token.lemma_ for token in doc_object])) if switch else doc_object
