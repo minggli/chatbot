@@ -13,6 +13,3 @@ raw_data = web_scraper.extract()
 
 labels = {key: raw_data[key][0] for key in raw_data}
 leaflets = {v: k.lower() for k, v in labels.items()}
-
-nlp = NLPProcessor(attrs=NLP)
-processed_data = nlp.process(raw_data)

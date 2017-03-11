@@ -5,7 +5,7 @@ import pickle
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
-from . import NHSTextMiner, processed_data, labels, DATA_LOC
+from . import NHSTextMiner, NLPProcessor, DATA_LOC, NLP, raw_data, labels
 
 
 def wrapper_classifier(func):
@@ -31,17 +31,20 @@ def train_model(input_data, label, n=100, sample_size=.8):
 
 
 if not os.path.exists(DATA_LOC + 'engine.pkl'):
-    Engine = train_model(processed_data, labels, n=100, sample_size=0.8)
+    nlp = NLPProcessor(attrs=NLP)
+    processed_data = nlp.process(raw_data)
+    Engine = train_model(processed_data, labels, n=100, sample_size=0.4)
     with open(DATA_LOC + 'engine.pkl', 'wb') as f:
         pickle.dump(Engine, f)
 else:
     print('loading cached engine...', flush=True, end='\n')
     with open(DATA_LOC + 'engine.pkl', 'rb') as f:
         Engine = pickle.load(f)
+    nlp = NLPProcessor(attrs=NLP)
     print('done', flush=True)
 
 
-def naive_bayes_classifier(query, engine, nlp, decision_boundary=.8, limit=5):
+def naive_bayes_classifier(query, engine, decision_boundary=.8, limit=5):
     """spell out most probable diseases and respective percentages."""
     options = list()
     words = NHSTextMiner.word_feat(word_tokenize(nlp.process(query)))

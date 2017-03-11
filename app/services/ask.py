@@ -1,7 +1,7 @@
 from flask import Flask, make_response, abort, request
 
 from . import API_BASE_URL
-from ..engine import nlp, leaflets
+from ..engine import leaflets
 from ..engine.naivebayes import Engine, naive_bayes_classifier
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ def symptom_not_found(error):
 
 
 @app.route(API_BASE_URL + '/ask', methods=['POST'])
-def ask(clf=naive_bayes_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
+def ask(clf=naive_bayes_classifier, engine=Engine, ambiguity_trials=3):
     """this function needs completely refactor"""
 
     # Previous sessions should store at client, this temporary hack only serves as a prototype.
@@ -32,7 +32,7 @@ def ask(clf=naive_bayes_classifier, engine=Engine, nlp=nlp, ambiguity_trials=3):
 
     aggregate_text.append(question)
 
-    output = clf(query=' '.join(aggregate_text), engine=engine, nlp=nlp)
+    output = clf(query=' '.join(aggregate_text), engine=engine)
 
     try:
         if responses[-1][1] == 0 and 'yes' in question.lower():
