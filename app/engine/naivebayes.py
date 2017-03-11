@@ -16,7 +16,7 @@ def train_model(input_data, label, n=100, sample_size=.8):
             words, int(sample_size * len(words)))), label[key])) for r in range(n)]
         shuffled_feature_set += row
     print('done', flush=True)
-    print('training classifier...', end='', flush=True)
+    print('training classifier...it may take a few minutes...', end='', flush=True)
     trained_clf = NaiveBayesClassifier.train(shuffled_feature_set)
     print('done', flush=True)
     return trained_clf
