@@ -22,26 +22,21 @@ def train_model(input_data, label, n=100, sample_size=.8):
     return trained_clf
 
 
-def naive_bayes_classifier(query, engine, decision_boundary=.8, limit=5):
+def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
     """spell out most probable diseases and respective percentages."""
-    options = list()
     words = NHSTextMiner.word_feat(word_tokenize(nlp.process(query)))
     print('understanding {}...'.format(words))
     objects = engine.prob_classify(words)
     keys = list(objects.samples())
 
-    for key in keys:
-        prob = objects.prob(key)
-        options.append((key, prob))
-
+    options = [tuple((key, objects.prob(key))) for key in keys]
     options.sort(key=lambda x: x[1], reverse=True)
     options = options[:limit]
 
     if options[0][1] > decision_boundary:
-        return '{0} (~{1:.0%})'.format(options[0][0], options[0][1]), 0
+        return options[0]
     elif options[0][1] > decision_boundary / 3:
-        return ';\n'.join([pair[0] + ' (~{:.0%})'.format(pair[1])
-                           for pair in options]), 1
+        return options
     else:
         return None
 

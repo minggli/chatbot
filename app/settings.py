@@ -4,9 +4,9 @@
     a repository to configure various parts of the app
 """
 
+DATA_LOC = 'app/cache/'
 NHS_BASE_URL = 'http://www.nhs.uk'
 API_BASE_URL = '/chatbot/api/v1'
-DATA_LOC = 'app/cache/'
 
 TEXTMINER = {
 
@@ -35,4 +35,9 @@ NLP = {
         'lemma': True
     },
     'part_of_speech_exclude': ['ADP', 'PUNCT', 'DET', 'CONJ', 'PART', 'PRON', 'SPACE']
+}
+
+APP_CONFIG = {
+    'SECRET_KEY': '\x9c\xedh\xdf\x8dS\r\xe3]\xc3\xd3\xbd\x0488\xfc\xa6<\xfe\x94\xc8\xe0\xc7\xdb',
+    'DEBUG': False
 }

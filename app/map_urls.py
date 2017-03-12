@@ -50,7 +50,7 @@ def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
     urls = list()
     for element in page.find_all(['a']):
         url = re.findall(pattern=regex, string=element.get('href'))
-        if len(url) != 0:
+        if url:
             url = str(url[0]).lower()
             end_index = url.find('/pages/')
             if end_index > 0:
@@ -66,4 +66,4 @@ def sorted_urls(base_url):
     nested_list = [extract_hyperlinks(page=p, base_url=base_url)
                    for p in extract_index_pages(base_url=base_url)]
     unravelled_list = [url for l in nested_list for url in l]
-    return sorted(list(set(unravelled_list)))
+    return sorted(list(set(unravelled_list)))[:50]
