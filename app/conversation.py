@@ -1,90 +1,83 @@
-from flask import Flask, make_response, request
-from uuid import uuid4
+"""
+    Conversation
 
-
-class SessionController(object):
-
-    def __init__(self, session, ambiguity_trials=3):
-
-        self.sess = session
-
-        self.sess['sid'] = str(uuid4())
-        self.sess['count'] = 0
-        self.sess['aggregate_texts'] = None
-
-        self.question = None
-        self.last_msg = None
-        self.aggregate_questions = list()
-
-        self.ambiguity_trials = ambiguity_trials
-
-    def log(self, func):
-        def wrapper(*args):
-            self.count += 1
-            self.last_msg = func
-            return func(*args)
-        return wrapper
-
-    def aggregate(self):
-        self.aggregate_questions.append(self.question)
-        return ' '.join(self.aggregate_questions)
-
-    @property
-    def can_leaflet(self):
-        if self.last_msg.__name__ == 'leaflet_prompt':
-            return True
-        else:
-            return False
-
-    def resp_leaflet(self):
-        if self.can_leaflet and 'yes' in self.question.lower():
-            return make_response(Messenger.leaflet, 200)
-        elif self.can_leaflet and not 'yes' in self.question.lower():
-            return make_response(Messenger.greeting, 200)
-
-    def resp_no_result(self):
-        return make_response(Messenger.no_result_prompt + Messenger.greeting, 200)
+    rule-based retrieval conversation module with pre-determined responses.
+"""
 
 
 class Conversation(object):
 
-    def __init__(self):
+    def __init__(self, leaflet, max_trials):
 
+        self.leaflets = leaflet
+        self.max_trials = max_trials
+
+        self.curr_question = None
         self.output = None
-        self.leaflets = None
+        self.sess = None
 
-    def greeting(self):
+    def converse(self, output):
+
+        self.output = output
+        self.sess['prev_outputs'].append(output)
+        self.sess['count'] += 1
+
+        if self.sess['leaflet']:
+            if 'yes' in self.curr_question.lower():
+                self.initiate_sess()
+                return self._leaflet() + self._greeting()
+            else:
+                self.initiate_sess()
+                return self._greeting()
+
+        if not self.output:
+            if self.sess['count'] < self.max_trials:
+                return self._no_result_prompt()
+            elif self.sess['count'] == self.max_trials:
+                self.initiate_sess()
+                return self._undecided_reset() + self._greeting()
+
+        elif isinstance(self.output, list):
+            if self.sess['count'] < self.max_trials:
+                return self._several_possibilities() + self._undecided_prompt()
+            elif self.sess['count'] == self.max_trials:
+                self.initiate_sess()
+                return self._several_possibilities() + self._undecided_reset() + self._greeting()
+
+        elif isinstance(self.output, tuple):
+                self.initiate_sess()
+                self.sess['leaflet'] = True
+                return self._single_result() + self._leaflet_prompt()
+
+    def initiate_sess(self):
+        self.sess['count'] = 0
+        self.sess['leaflet'] = False
+        self.sess['aggregate_texts'] = list()
+
+    def _greeting(self):
         return '\n\nHow can I help you?'
 
-    @Controller.log
-    def no_result_prompt(self):
-        return  'Sorry I don\'t have enough information to help you, ' \
-                'you can improve result by describing symptoms further.'
+    def _no_result_prompt(self):
+        return '\nSorry I don\'t have enough symptom details, ' \
+                'can you tell me more?'
 
-    @staticmethod
-    def _present_multiple(output):
-        return ';\n'.join([pair[0] + ' (~{:.0%})'.format(pair[1]) for pair in output])
+    def _several_possibilities(self):
+        return '\nBased on what you told me, here are several possible reasons' \
+            ', including: \n\n{0}\n'.format(';\n'.join([pair[0] + ' (~{:.0%})'.format(pair[1]) for pair in self.output]))
 
-    def several_results(self):
-        return  'Based on what you told me, here are several possible reasons' \
-                ', including: \n\n{0}'.format(present_multiple(self.output))
-
-    def undecided_prompt(self):
-        return  '\n\nYou can improve result by describing symptoms further.' \
+    def _undecided_prompt(self):
+        return '\nYou can improve result by describing symptoms further.' \
                 '\n\nCan you tell me more about the symptoms?'
 
-    def undecided_reset(self):
-        return '\n\nOk, we don\'t seem to get a confident result. Let\'s start again...'
+    def _undecided_reset(self):
+        return '\nOk, we don\'t seem to get a confident result. Let\'s start again...'
 
-    def single_result(self):
-        return 'Based on what you told me, here is what I think: {0} (~{1:.0%})'.format(
+    def _single_result(self):
+        return '\nBased on what you told me, here is what I think: {0} (~{1:.0%})'.format(
                 self.output[0], self.output[1])
 
-    def leaflet_prompt(self):
+    def _leaflet_prompt(self):
         return '\n\nWould you like to have NHS leaflet?'
 
-    def leaflet(self):
-        return 'Here is the link: {0}'.format(self.leaflets[self.output[0]])
-
-new = Controller()
-msg = Messenger()
+    def _leaflet(self):
+        return '\nHere is the link: {0}'.format(self.leaflets[self.sess['prev_outputs'][-2][0]])
