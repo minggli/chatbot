@@ -1,9 +1,12 @@
+import nltk
 import random
 
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
 from . import NHSTextMiner, NLPProcessor, NLP, raw_data, labels
+
+nltk.download('punkt')
 
 
 def train_model(input_data, label, n=100, sample_size=.8):
