@@ -45,9 +45,9 @@ class Conversation(object):
                 return self._several_possibilities() + self._undecided_reset() + self._greeting()
 
         elif isinstance(self.output, tuple):
-                self.initiate_sess()
-                self.sess['leaflet'] = True
-                return self._single_result() + self._leaflet_prompt()
+            self.initiate_sess()
+            self.sess['leaflet'] = True
+            return self._single_result() + self._leaflet_prompt()
 
     def initiate_sess(self):
         self.sess['count'] = 0
@@ -59,22 +59,23 @@ class Conversation(object):
 
     def _no_result_prompt(self):
         return '\nSorry I don\'t have enough symptom details, ' \
-                'can you tell me more?'
+            'can you tell me more?'
 
     def _several_possibilities(self):
         return '\nBased on what you told me, here are several possible reasons' \
-            ', including: \n\n{0}\n'.format(';\n'.join([pair[0] + ' (~{:.0%})'.format(pair[1]) for pair in self.output]))
+            ', including: \n\n{0}\n'.format(';\n'.join(
+                [pair[0] + ' (~{:.0%})'.format(pair[1]) for pair in self.output]))
 
     def _undecided_prompt(self):
         return '\nYou can improve result by describing symptoms further.' \
-                '\n\nCan you tell me more about the symptoms?'
+            '\n\nCan you tell me more about the symptoms?'
 
     def _undecided_reset(self):
         return '\nOk, we don\'t seem to get a confident result. Let\'s start again...'
 
     def _single_result(self):
         return '\nBased on what you told me, here is what I think: {0} (~{1:.0%})'.format(
-                self.output[0], self.output[1])
+            self.output[0], self.output[1])
 
     def _leaflet_prompt(self):
         return '\n\nWould you like to have NHS leaflet?'

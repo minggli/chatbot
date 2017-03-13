@@ -13,7 +13,7 @@ def show_symptoms():
     resp = \
         make_response(jsonify(
             {'symptoms': {key.lower(): leaflets[key] for key in leaflets}}
-            ), 200)
+        ), 200)
     return resp
 
 
@@ -25,7 +25,7 @@ def show_symptom(symptom_name):
     try:
         resp = make_response(jsonify(
             {'symptoms': {symptom_name: modified_mapping[symptom_name]}}
-            ), 200)
+        ), 200)
     except KeyError:
         return redirect(url_for('show_symptoms'))
     return resp

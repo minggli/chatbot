@@ -18,7 +18,8 @@ def symptom_not_found(error):
 @app.before_request
 def initiate_session():
     """set up session variables that persist per browser cookie for multiple requests."""
-    session['sid'] = session.get('sid', 'Session ID: {0}\n'.format(str(uuid4())))
+    session['sid'] = session.get(
+        'sid', 'Session ID: {0}\n'.format(str(uuid4())))
     session['count'] = session.get('count', 0)
     session['aggregate_texts'] = session.get('aggregate_texts', list())
     session['prev_outputs'] = session.get('prev_outputs', list())
@@ -46,7 +47,8 @@ def ask(clf=naive_bayes_classifier, engine=Engine):
     controller.curr_question = question
     controller.sess['aggregate_texts'].append(question)
 
-    output = clf(query=' '.join(controller.sess['aggregate_texts']), engine=engine)
+    output = clf(query=' '.join(controller.sess[
+                 'aggregate_texts']), engine=engine)
     resp = controller.converse(output)
 
     return make_response(session['sid'] + resp, 200)
