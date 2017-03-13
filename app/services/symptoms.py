@@ -1,5 +1,4 @@
-from flask import Flask, jsonify, abort, make_response, url_for, \
-redirect
+from flask import Flask, jsonify, make_response, url_for, redirect
 
 from . import APP_CONFIG, API_BASE_URL
 from ..engine import leaflets
