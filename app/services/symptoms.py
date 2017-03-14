@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, make_response, url_for, redirect
 
-from . import APP_CONFIG, API_BASE_URL
 from app.engine import leaflets
+
+from . import APP_CONFIG, API_BASE_URL
 
 app = Flask(__name__)
 app.config.update(APP_CONFIG)

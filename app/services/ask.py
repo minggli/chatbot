@@ -1,10 +1,11 @@
 from flask import Flask, make_response, abort, request, session, g
 from uuid import uuid4
 
-from . import APP_CONFIG, API_BASE_URL
 from app.engine import leaflets
 from app.engine.naivebayes import Engine, naive_bayes_classifier
 from app.conversation import Conversation
+
+from . import APP_CONFIG, API_BASE_URL
 
 app = Flask(__name__)
 app.config.update(APP_CONFIG)
