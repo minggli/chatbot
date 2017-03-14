@@ -1,6 +1,7 @@
 .DS_Store
 *.pyc
 *.pyo
+*.pkl
 env
 env*
 dist
@@ -12,7 +13,6 @@ _mailinglist
 .cache/
 .idea/
 venv/
-app/cache/
 
 # Coverage reports
 htmlcov
