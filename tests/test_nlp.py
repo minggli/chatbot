@@ -5,8 +5,8 @@ from chatbot.settings import NLP
 
 try:
     texts = str(sys.argv[1])
-except:
-    raise ValueError('there is no texts in command line.')
+except IndexError:
+    raise RuntimeError('there is no texts in command line.')
 
 nlp = NLPProcessor(attrs=NLP)
 
