@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 sudo pip3 install --upgrade pip
 sudo pip3 install virtualenv
 sudo virtualenv venv
