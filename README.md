@@ -3,6 +3,8 @@ a naive chatbot that sometimes misdiagnoses.
 
 This retrieval-based prototype bot uses publicly available health information and a set of NLP techniques to generate indicative diagnosis and NHS leaflet for that diagnosis. The result is not to be treated as medical advice.
 
+![alt text](screenshots/example_cold.png "example common cold")
+
 ## Installation
 Run `./install.sh`. This will create a virtual environment and install all components required within.
 
