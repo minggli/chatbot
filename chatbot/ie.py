@@ -1,7 +1,8 @@
 """
     ie
 
-    informatio extraction module provides a mapping of useful urls that can be used as training data.
+    informatio extraction module provides a mapping of useful urls that can be
+    used as training data.
 """
 
 import os
@@ -21,8 +22,8 @@ sys.setrecursionlimit(30000)
 def extract_index_pages(base_url):
     """obtain BodyMap A-Z web pages to extract skeleton of symptom pages."""
     index = list(string.ascii_uppercase) + ['0-9']
-    index_urls = [
-        base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(i) for i in index]
+    index_urls = [base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(
+                  i) for i in index]
     bs4_objects = list()
     if not os.path.exists(DATA_LOC + 'index_pages.pkl'):
         try:
