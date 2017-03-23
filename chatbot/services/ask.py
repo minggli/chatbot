@@ -26,7 +26,7 @@ def symptom_not_found(error):
 def initiate_session():
     """set up session that persists for multiple requests per cookie."""
     session['sid'] = session.get(
-    'sid', 'Session ID: {0}\n'.format(str(uuid4())))
+                    'sid', 'Session ID: {0}\n'.format(str(uuid4())))
     session['count'] = session.get('count', 0)
     session['aggregate_texts'] = session.get('aggregate_texts', list())
     session['prev_outputs'] = session.get('prev_outputs', list())
@@ -57,6 +57,7 @@ def ask(clf=naive_bayes_classifier, engine=Engine):
     resp = controller.converse(output)
 
     return make_response(session['sid'] + resp, 200)
+
 
 if __name__ == '__main__':
     app.run(port=5000)

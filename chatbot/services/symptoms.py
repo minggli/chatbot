@@ -36,5 +36,6 @@ def show_symptom(symptom_name):
         return redirect(url_for('show_symptoms'))
     return resp
 
+
 if __name__ == '__main__':
     app.run(port=5001)

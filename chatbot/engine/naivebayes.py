@@ -22,11 +22,11 @@ def train_model(input_data, label, n=100, sample_size=.8):
     shuffled_feature_set = list()
     for key in input_data:
         words = word_tokenize(input_data[key])
-        row = [tuple((NHSTextMiner.word_feat(random.sample(
-            words, int(sample_size * len(words)))), label[key])) for r in range(n)]
+        row = [tuple((NHSTextMiner.word_feat(random.sample(words,
+               int(sample_size * len(words)))), label[key])) for r in range(n)]
         shuffled_feature_set += row
     print('done', flush=True)
-    print('training classifier...it may take a few minutes...', end='', flush=True)
+    print('training model...this may take a few minutes.', end='', flush=True)
     trained_clf = NaiveBayesClassifier.train(shuffled_feature_set)
     print('done', flush=True)
     return trained_clf
@@ -49,6 +49,7 @@ def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
         return options
     else:
         return None
+
 
 nlp = NLPProcessor(attrs=NLP)
 processed_data = nlp.process(raw_data)

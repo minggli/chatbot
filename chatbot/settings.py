@@ -34,10 +34,12 @@ NLP = {
         'stop': True,
         'lemma': True
     },
-    'part_of_speech_exclude': ['ADP', 'PUNCT', 'DET', 'CONJ', 'PART', 'PRON', 'SPACE']
+    'part_of_speech_exclude':
+        ['ADP', 'PUNCT', 'DET', 'CONJ', 'PART', 'PRON', 'SPACE']
 }
 
 APP_CONFIG = {
-    'SECRET_KEY': '\x9c\xedh\xdf\x8dS\r\xe3]\xc3\xd3\xbd\x0488\xfc\xa6<\xfe\x94\xc8\xe0\xc7\xdb',
+    'SECRET_KEY': '\x9c\xedh\xdf\x8dS\r\xe3]\xc3\xd3\xbd\x0488\xfc'
+                  '\xa6<\xfe\x94\xc8\xe0\xc7\xdb',
     'DEBUG': False
 }
