@@ -30,7 +30,9 @@ It accepts payload as simple as `{"questions": "your questions or description of
 
 To list all leaflets or leaflet for the chosen symptom.
 
-## Further ideas and development
-Using vector representation of words (e.g. Word2Vec) rather than sparse matrix to extract proximity of semantic meanings in embedded space;
+## Further development ideas
+Using word vector rather than sparse matrix to extract semantic proximity in embedded space;
 
-Explore LSTM as text classification alternative to Naive Bayes
+Explore Recurrent Neural Network (e.g. LSTM) to move from retrieval-based model to generative;
+
+Explore supervised Latent Dirichlet Allocation, ConvNet as text classification alternative to Naive Bayes.
