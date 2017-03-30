@@ -25,12 +25,11 @@ def symptom_not_found(error):
 @app.before_request
 def initiate_session():
     """set up session that persists for multiple requests per cookie."""
-    session['sid'] = session.get(
-                    'sid', 'Session ID: {0}\n'.format(str(uuid4())))
-    session['count'] = session.get('count', 0)
-    session['aggregate_texts'] = session.get('aggregate_texts', list())
-    session['prev_outputs'] = session.get('prev_outputs', list())
-    session['leaflet'] = session.get('leaflet', False)
+    session.setdefault('sid', 'Session ID: {0}\n'.format(str(uuid4())))
+    session.setdefault('count', 0)
+    session.setdefault('aggregate_texts', list())
+    session.setdefault('prev_outputs', list())
+    session.setdefault('leaflet', False)
 
 
 @app.before_request
