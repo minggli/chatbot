@@ -19,7 +19,7 @@ sys.setrecursionlimit(30000)
 # TODO find a better way to cache BeautifulSoup objects
 
 
-class NHSTextMiner(object):
+class NHSTextMiner:
     """web scrapping module using BeautifulSoup4 and Requests"""
 
     def __init__(self, urls, attrs, threads=4, display=False):
@@ -197,7 +197,7 @@ class AdditiveDict(dict):
         super(AdditiveDict, self).__setitem__(key, self.__getitem__(key) + 1)
 
 
-class NLPProcessor(object):
+class NLPProcessor:
     """using SpaCy's features to extract relevance out of raw texts."""
 
     def __init__(self, attrs):

@@ -5,7 +5,7 @@
 """
 
 
-class Conversation(object):
+class Conversation:
 
     def __init__(self, leaflet, max_trials):
 
