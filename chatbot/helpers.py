@@ -180,23 +180,6 @@ class NHSTextMiner:
         return dict([(word, True) for word in words])
 
 
-class AdditiveDict(dict):
-
-    def __init__(self, iterable=None):
-        if not iterable:
-            pass
-        else:
-            assert hasattr(iterable, '__iter__')
-            for i in iterable:
-                self.__setitem__(i[0], 0)
-
-    def __missing__(self, key):
-        return 0
-
-    def __setitem__(self, key, value):
-        super(AdditiveDict, self).__setitem__(key, self.__getitem__(key) + 1)
-
-
 class NLPProcessor:
     """using SpaCy's features to extract relevance out of raw texts."""
 
