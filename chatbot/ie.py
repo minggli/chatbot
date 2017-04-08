@@ -6,7 +6,6 @@
 """
 
 import os
-import sys
 import re
 import string
 import pickle
@@ -15,8 +14,6 @@ import requests
 from bs4 import BeautifulSoup
 
 from .settings import DATA_LOC
-
-sys.setrecursionlimit(30000)
 
 
 def extract_index_pages(base_url):
