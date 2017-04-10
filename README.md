@@ -6,7 +6,7 @@ This retrieval-based prototype bot uses publicly available health information an
 ![alt text](screenshots/example_cold.png "example common cold")
 
 ## Installation
-Run `./install.sh`. This will create a virtual environment and install all components required within.
+Run `./install.sh`. This will create a virtual environment `venv` and install all components required within.
 
 ## Running chatbot
 Within virtualenv venv (`source venv/bin/activate`), you can launch separate service:
