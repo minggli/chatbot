@@ -1,6 +1,6 @@
 from chatbot import settings
-from chatbot.ie import extracted_urls
-from chatbot.helpers import NHSTextMiner, NLPProcessor
+from chatbot.ie import extracted_urls, NHSTextMiner
+from chatbot.helpers import NLPProcessor
 
 TEXTMINER = settings.TEXTMINER
 NHS_BASE_URL = settings.NHS_BASE_URL
