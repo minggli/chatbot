@@ -16,7 +16,7 @@ class NLPProcessor:
 
     def __init__(self, attrs):
         print('initiating NLP language pipeline...', end='', flush=True)
-        self._nlp = spacy.load('en')
+        self._nlp = spacy.load('en_core_web_md')
         print('done')
 
         self._is_string = None

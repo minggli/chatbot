@@ -8,11 +8,16 @@
     Mikolov et al. 2013
 """
 
-from . import corpus, labels
+
+from chatbot.nlp.embedding import WordVectorizer
+from . import corpus
 
 
-last = corpus[-1]
+last_doc = ' '.join(corpus[-1]).split()
+test = ['the', 'brown', 'fox', 'jumps']
 
-arti = [texts for texts in last]
-for i in arti:
-    print(i)
+vectors = WordVectorizer().fit(test).transform()
+
+for k, w in enumerate(test):
+    print(w)
+    print(vectors[k])

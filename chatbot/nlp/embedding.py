@@ -17,7 +17,7 @@ import collections
 class WordVectorizer:
 
     def __init__(self):
-        self._nlp = spacy.load('en_vectors_glove_md')
+        self._nlp = spacy.load('en_core_web_md')
 
     @property
     def __corpus(self):
