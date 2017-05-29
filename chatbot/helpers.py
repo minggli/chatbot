@@ -20,7 +20,7 @@ class NLPProcessor:
         print('done')
 
         self._is_string = None
-        self._is_dict = None
+        self._is_list = None
         self._output = None
         self._doc_object = None
         self._content = None
@@ -31,10 +31,9 @@ class NLPProcessor:
         if isinstance(content, str):
             self._is_string = True
             self._doc_object = self._nlp(content)
-        elif isinstance(content, dict):
-            self._is_dict = True
-            self._content = {key: self._nlp(
-                ' '.join(content[key])) for key in content}
+        elif isinstance(content, list):
+            self._is_list = True
+            self._content = [self._nlp(' '.join(doc)) for doc in content]
         else:
             raise TypeError('require string or dictionary.')
 
@@ -43,14 +42,13 @@ class NLPProcessor:
             self._output = ' '.join(processed.text.split())
             return self._output
 
-        elif self._is_dict:
+        elif self._is_list:
             if not os.path.exists(DATA_LOC + 'processed_data.pkl'):
-                print('Using NLP language pipeline to process...',
-                      end='', flush=True)
-                for document in self._content:
-                    self._content[document] = ' '.join(self._pipeline(
-                        doc_object=self._content[document]).text.split())
-                self._output = self._content
+                print('Using NLP language pipeline to process...', end='',
+                      flush=True)
+                self._output = [' '.join(
+                                self._pipeline(doc_object=doc).text.split())
+                                for doc in self._content]
                 print('done')
                 with open(DATA_LOC + 'processed_data.pkl', 'wb') as filename:
                     pickle.dump(self._output, filename)

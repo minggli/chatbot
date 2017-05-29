@@ -16,7 +16,7 @@ import requests
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
 
-from .settings import DATA_LOC
+from .settings import DATA_LOC, EN_CONTRACTIONS
 
 
 sys.setrecursionlimit(30000)
@@ -74,7 +74,7 @@ def extracted_urls(base_url):
     return sorted(list(set(unravelled_list)))
 
 
-class NHSTextMiner:
+class TextMiner:
     """web scrapping module using BeautifulSoup4 and Requests"""
 
     def __init__(self, urls, attrs, threads=4, display=False):
@@ -117,7 +117,7 @@ class NHSTextMiner:
         if self._display:
             print(r.status_code, r.url)
         if r.status_code == 200:
-            soup = BeautifulSoup(r.text, 'html5lib')
+            soup = BeautifulSoup(r.text, 'html.parser')
             return tuple((soup, None))
         else:
             return tuple((None, url))
@@ -141,8 +141,7 @@ class NHSTextMiner:
             self._count -= 1
 
     def extract(self):
-        """get all web pages and create soup objects ready for extraction
-        """
+        """get all web pages and create soup objects ready for extraction"""
 
         if not os.path.exists(DATA_LOC + 'symptoms.pkl'):
 
@@ -160,32 +159,28 @@ class NHSTextMiner:
                         'subj_attributes']).get('content')
                     meta = page.find('meta', attrs=self._attrs[
                         'desc_attributes']).get('content')
-                    article = [element.get_text(strip=True)
-                               for element in page.find_all(
-                               ['p', 'li', 'meta'])]
-
+                    aricl = [i.get_text() for i in page.find_all(['p', 'li'])]
                 except AttributeError:
                     self._failed_urls.append(page_url)
                     continue
 
-                subj = subj.replace(' - NHS Choices', '')
                 start_idx = int()
                 end_idx = int()
 
-                for j, value in enumerate(article):
+                for j, value in enumerate(aricl):
                     # using 3 keys each end to identify range of main article
                     try:
-                        s1 = article[j] == \
+                        s1 = aricl[j] == \
                             self._attrs['article_attributes']['start_t_2']
-                        s2 = article[j + 1] == \
+                        s2 = aricl[j + 1] == \
                             self._attrs['article_attributes']['start_t_1']
-                        s3 = article[j + 2] == \
+                        s3 = aricl[j + 2] == \
                             self._attrs['article_attributes']['start_t_0']
-                        e1 = article[j] == \
+                        e1 = aricl[j] == \
                             self._attrs['article_attributes']['end_t_0']
-                        e2 = article[j + 1] == \
+                        e2 = aricl[j + 1] == \
                             self._attrs['article_attributes']['end_t_1']
-                        e3 = article[j + 2] == \
+                        e3 = aricl[j + 2] == \
                             self._attrs['article_attributes']['end_t_2']
                     except IndexError:
                         self._failed_urls.append(page_url)
@@ -198,7 +193,7 @@ class NHSTextMiner:
                         end_idx = j
                         break
 
-                content = article[start_idx: end_idx]
+                content = aricl[start_idx: end_idx]
 
                 if len(content) < 5:
                     self._failed_urls.append(page_url)
@@ -206,6 +201,8 @@ class NHSTextMiner:
 
                 content.insert(0, subj)
                 content.insert(1, meta)
+
+                content = self.cleanse_content(content)
 
                 self._output[page_url] = content
 
@@ -224,12 +221,35 @@ class NHSTextMiner:
 
         return self._output
 
-    @staticmethod
-    def cleanse(words, removals='''!"#$%&()*+/;<=>?@[\]^_`{|}~.,:'''):
-        return [word.encode('utf-8').decode('ascii', 'ignore').translate(
-            str.maketrans(removals, ' ' * len(removals))).replace('\xa0', ' ')
-            for word in words]
+    def cleanse_content(self, content):
+        cleansed_content = list()
+        for text in content:
+            if not content.index(text):
+                text = text.replace(' - NHS Choices', '')
+            text = text.translate(str.maketrans("–’£ ", "-'  "))
+            text = self.split_contraction(text)
+            cleansed_content.append(text)
+        return cleansed_content
 
-    @staticmethod
-    def word_feat(words):
-        return dict([(word, True) for word in words])
+    def split_contraction(self, texts, lib=EN_CONTRACTIONS):
+        """split you'll to you will and other similar cases"""
+        regex = re.compile(pattern='({0})'.format('|'.join(lib.keys())),
+                           flags=re.IGNORECASE)
+        return regex.sub(lambda x: lib[str.lower(x.group(0))], texts)
+
+    def jsonify(self):
+        return [
+                {
+                    "url": key,
+                    "label": self._output[key][0],
+                    "doc": self._output[key][1:]
+                } for key in self._output
+                ]
+    #
+    # @staticmethod
+    # def cleanse(words, removals='''!"#$%&()*+/;<=>?@[\]^_`{|}~.,:'''):
+    #     return [word.encode('utf-8').decode('ascii', 'ignore').translate(
+    #         str.maketrans(removals, ' ' * len(removals)))
+    #         for word in words]
+    #
+    # @staticmethod

@@ -8,6 +8,11 @@
     Mikolov et al. 2013
 """
 
-from . import NHSTextMiner, NLPProcessor, NLP, raw_data, labels
+from . import TextMiner, NLPProcessor, NLP, raw_data, labels
 
-print(raw_data[0])
+
+one = raw_data
+
+arti = [texts for texts in list(one.values())[3]]
+for i in arti:
+    print(i.encode('latin'))

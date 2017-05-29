@@ -11,30 +11,48 @@ import random
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
-from . import NHSTextMiner, NLPProcessor, NLP, raw_data, labels
+from . import NLPProcessor, NLP, corpus, labels
 
 nltk.download('punkt')
 
 
-def train_model(input_data, label, n=100, sample_size=.8):
-    # TODO investigate different algorithm e.g. TF-IDF and Reinforcement NN
-    print('starting to generate training data...', end='', flush=True)
-    shuffled_feature_set = list()
-    for key in input_data:
-        words = word_tokenize(input_data[key])
-        row = [tuple((NHSTextMiner.word_feat(random.sample(words,
-               int(sample_size * len(words)))), label[key])) for r in range(n)]
-        shuffled_feature_set += row
-    print('done', flush=True)
-    print('training model...this may take a few minutes.', end='', flush=True)
-    trained_clf = NaiveBayesClassifier.train(shuffled_feature_set)
-    print('done', flush=True)
-    return trained_clf
+def word_feat(words):
+    """traditional atomic tokenization"""
+    return dict([(word, True) for word in words])
+
+
+def resample(feat, label, sample_size, n=100):
+    k = int(sample_size * len(feat))
+    return [(word_feat(random.sample(feat, k)), label) for _ in range(n)]
+
+
+def train_model(documents, labels, sample_size=.3, verbose=True):
+
+    if verbose:
+        print('starting to generate training data...', end='', flush=True)
+
+    labeled_feature_set = list()
+
+    for n, doc in enumerate(documents):
+        feature = word_tokenize(doc)
+        label = labels[n]
+        resampled = resample(feature, label, sample_size)
+        labeled_feature_set += resampled
+
+    if verbose:
+        print('done', flush=True)
+        print('training model...this may take a few minutes.', end='')
+
+    trained_model = NaiveBayesClassifier.train(labeled_feature_set)
+
+    if verbose:
+        print('done', flush=True)
+    return trained_model
 
 
 def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
     """spell out most probable diseases and respective percentages."""
-    words = NHSTextMiner.word_feat(word_tokenize(nlp.process(query)))
+    words = word_feat(word_tokenize(nlp.process(query)))
     print('understanding {}...'.format(words))
     objects = engine.prob_classify(words)
     keys = list(objects.samples())
@@ -52,5 +70,5 @@ def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
 
 
 nlp = NLPProcessor(attrs=NLP)
-processed_data = nlp.process(raw_data)
-Engine = train_model(processed_data, labels, n=100, sample_size=0.3)
+processed_data = nlp.process(corpus)
+Engine = train_model(processed_data, labels, sample_size=0.3)

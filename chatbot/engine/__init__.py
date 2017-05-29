@@ -1,14 +1,14 @@
-from chatbot import settings
-from chatbot.ie import extracted_urls, NHSTextMiner
+from chatbot import settings as sett
+from chatbot.ie import extracted_urls, TextMiner
 from chatbot.helpers import NLPProcessor
 
-TEXTMINER = settings.TEXTMINER
-NHS_BASE_URL = settings.NHS_BASE_URL
-NLP = settings.NLP
+TEXTMINER, NHS_BASE_URL, NLP = sett.TEXTMINER, sett.NHS_BASE_URL, sett.NLP
 
 urls = extracted_urls(base_url=NHS_BASE_URL)
-web_scraper = NHSTextMiner(urls=urls, attrs=TEXTMINER, display=True)
-raw_data = web_scraper.extract()
+web_scraper = TextMiner(urls=urls, attrs=TEXTMINER, display=True)
+web_scraper.extract()
 
-labels = {key: raw_data[key][0] for key in raw_data}
-leaflets = {v: k.lower() for k, v in labels.items()}
+raw_data = web_scraper.jsonify()
+corpus = [json['doc'] for json in raw_data]
+labels = [json['label'] for json in raw_data]
+leaflets = {json['label']: json['url'].lower() for json in raw_data}
