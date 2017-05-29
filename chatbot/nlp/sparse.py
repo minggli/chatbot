@@ -1,5 +1,5 @@
 """
-    helpers
+    sparse
 
     NLP processor
 """
@@ -8,7 +8,7 @@ import os
 import spacy
 import pickle
 
-from .settings import DATA_LOC
+from chatbot.settings import DATA_LOC
 
 
 class NLPProcessor:

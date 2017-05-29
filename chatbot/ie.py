@@ -13,14 +13,14 @@ import string
 import pickle
 import requests
 
+from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
 
 from .settings import DATA_LOC, EN_CONTRACTIONS
 
-
 sys.setrecursionlimit(30000)
-# TODO find a better way to cache BeautifulSoup objects
+# # TODO find a better way to cache BeautifulSoup objects
 
 
 def extract_index_pages(base_url):
@@ -68,6 +68,9 @@ def extract_hyperlinks(page, base_url, regex='/[Cc]onditions/.*'):
 
 def extracted_urls(base_url):
     """produce a sorted list of unique urls alphabetically."""
+    s = requests.Session()
+    s.mount(base_url, HTTPAdapter(max_retries=5))
+
     nested_list = [extract_hyperlinks(page=p, base_url=base_url)
                    for p in extract_index_pages(base_url=base_url)]
     unravelled_list = [url for l in nested_list for url in l]
@@ -78,7 +81,6 @@ class TextMiner:
     """web scrapping module using BeautifulSoup4 and Requests"""
 
     def __init__(self, urls, attrs, threads=4, display=False):
-        """urls and attrs to be supplied by main and setting."""
 
         self._urls = urls
         self._attrs = None
@@ -100,8 +102,7 @@ class TextMiner:
         if not all([isinstance(values, dict), len(values) >= 3]):
             raise TypeError('attributes must be a dictionary and contain'
                             ' desc_attributes, subj_attribtues, and '
-                            'article_attributes.'
-                            )
+                            'article_attributes.')
         else:
             self._attrs = values
 
@@ -219,7 +220,7 @@ class TextMiner:
             with open(DATA_LOC + 'symptoms.pkl', 'rb') as f:
                 self._output = pickle.load(f)
 
-        return self._output
+        return self
 
     def cleanse_content(self, content):
         cleansed_content = list()
@@ -239,17 +240,6 @@ class TextMiner:
 
     def jsonify(self):
         return [
-                {
-                    "url": key,
-                    "label": self._output[key][0],
-                    "doc": self._output[key][1:]
-                } for key in self._output
-                ]
-    #
-    # @staticmethod
-    # def cleanse(words, removals='''!"#$%&()*+/;<=>?@[\]^_`{|}~.,:'''):
-    #     return [word.encode('utf-8').decode('ascii', 'ignore').translate(
-    #         str.maketrans(removals, ' ' * len(removals)))
-    #         for word in words]
-    #
-    # @staticmethod
+                {"url": key,
+                 "label": self._output[key][0],
+                 "doc": self._output[key][1:]} for key in self._output]

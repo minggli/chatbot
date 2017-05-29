@@ -8,7 +8,7 @@ from flask import Flask, make_response, abort, request, session, g
 from uuid import uuid4
 
 from chatbot.engine import leaflets
-from chatbot.engine.naivebayes import Engine, naive_bayes_classifier
+from chatbot.engine.naivebayes import engine, naive_bayes_classifier
 from chatbot.conversation import Conversation
 from chatbot.settings import APP_CONFIG, API_BASE_URL
 
@@ -39,7 +39,7 @@ def initiate_controller():
 
 
 @app.route(API_BASE_URL + '/ask', methods=['POST'])
-def ask(clf=naive_bayes_classifier, engine=Engine):
+def ask(clf=naive_bayes_classifier, engine=engine):
 
     question = request.json.get('question', None)
 

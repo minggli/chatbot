@@ -32,7 +32,6 @@ def train_model(documents, labels, sample_size=.3, verbose=True):
         print('starting to generate training data...', end='', flush=True)
 
     labeled_feature_set = list()
-
     for n, doc in enumerate(documents):
         feature = word_tokenize(doc)
         label = labels[n]
@@ -41,7 +40,8 @@ def train_model(documents, labels, sample_size=.3, verbose=True):
 
     if verbose:
         print('done', flush=True)
-        print('training model...this may take a few minutes.', end='')
+        print('training model...this may take a few minutes.',
+              flush=True, end='')
 
     trained_model = NaiveBayesClassifier.train(labeled_feature_set)
 
@@ -71,4 +71,4 @@ def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
 
 nlp = NLPProcessor(attrs=NLP)
 processed_data = nlp.process(corpus)
-Engine = train_model(processed_data, labels, sample_size=0.3)
+engine = train_model(processed_data, labels, sample_size=0.3)
