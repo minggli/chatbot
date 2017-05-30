@@ -11,7 +11,7 @@ import random
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
-from . import NLPProcessor, NLP, corpus, labels
+from . import NLPProcessor, TextMiner, NLP, corpus, labels
 
 nltk.download('punkt')
 
@@ -50,9 +50,14 @@ def train_model(documents, labels, sample_size=.3, verbose=True):
     return trained_model
 
 
+def preprocess(q):
+    return word_feat(
+           word_tokenize(nlp.process(TextMiner.split_contraction(q))))
+
+
 def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
     """spell out most probable diseases and respective percentages."""
-    words = word_feat(word_tokenize(nlp.process(query)))
+    words = preprocess(query)
     print('understanding {}...'.format(words))
     objects = engine.prob_classify(words)
     keys = list(objects.samples())

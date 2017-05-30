@@ -160,10 +160,14 @@ class TextMiner:
                         'subj_attributes']).get('content')
                     meta = page.find('meta', attrs=self._attrs[
                         'desc_attributes']).get('content')
-                    aricl = [i.get_text() for i in page.find_all(['p', 'li'])]
+                    aricl = [i.get_text()
+                             for i in page.find_all(['p', 'li'])
+                             if not i.find(class_='hidden')]
                 except AttributeError:
                     self._failed_urls.append(page_url)
                     continue
+                for i in aricl:
+                    print(i)
 
                 start_idx = int()
                 end_idx = int()
@@ -224,22 +228,30 @@ class TextMiner:
 
     def cleanse_content(self, content):
         cleansed_content = list()
+        trans = str.maketrans("–’£ ", "-'  ")
         for text in content:
             if not content.index(text):
                 text = text.replace(' - NHS Choices', '')
-            text = text.translate(str.maketrans("–’£ ", "-'  "))
-            text = self.split_contraction(text)
+            text = text.translate(trans)
+            text = self.__class__.remove_email(text)
+            text = self.__class__.split_contraction(text)
             cleansed_content.append(text)
         return cleansed_content
 
-    def split_contraction(self, texts, lib=EN_CONTRACTIONS):
+    def jsonify(self):
+        return [{"url": key,
+                 "label": self._output[key][0],
+                 "doc": self._output[key][1:]} for key in self._output]
+
+    @staticmethod
+    def split_contraction(texts, lib=EN_CONTRACTIONS):
         """split you'll to you will and other similar cases"""
         regex = re.compile(pattern='({0})'.format('|'.join(lib.keys())),
                            flags=re.IGNORECASE)
         return regex.sub(lambda x: lib[str.lower(x.group(0))], texts)
 
-    def jsonify(self):
-        return [
-                {"url": key,
-                 "label": self._output[key][0],
-                 "doc": self._output[key][1:]} for key in self._output]
+    @staticmethod
+    def remove_email(texts):
+        """detect email address substrings and remove"""
+        regex = re.compile(pattern=r'[\w\.-]+@[\w\.-]+', flags=re.IGNORECASE)
+        return regex.sub(lambda x: '', texts)

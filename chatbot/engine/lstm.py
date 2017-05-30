@@ -8,16 +8,33 @@
     Mikolov et al. 2013
 """
 
+import tensorflow as tf
 
 from chatbot.nlp.embedding import WordVectorizer
-from . import corpus
+from . import corpus, labels
 
 
-last_doc = ' '.join(corpus[-1]).split()
-test = ['the', 'brown', 'fox', 'jumps']
+v = WordVectorizer()
+corpus = [token.text for doc in corpus for chunk in doc for token in v(chunk)]
+vectors = v.fit(corpus).transform()
 
-vectors = WordVectorizer().fit(test).transform()
+unrepresented_words = list()
+for k, w in enumerate(corpus):
+    if vectors[k].all() == 0:
+        unrepresented_words.append(w)
 
-for k, w in enumerate(test):
+unrepresented_words.sort(key=lambda x: len(x), reverse=True)
+
+for w in unrepresented_words:
     print(w)
-    print(vectors[k])
+    if len(w) < 5:
+        break
+
+print('{0:.4f}%'.format(len(unrepresented_words) / len(corpus) * 100))
+
+
+
+# corpus.sort(key=lambda x: len(x), reverse=True)
+#
+# for w in corpus:
+#     print(w)

@@ -32,6 +32,9 @@ class WordVectorizer:
         else:
             raise TypeError('corpus must be a list-like iterable of strings.')
 
+    def __call__(self, texts):
+        return self._nlp(texts)
+
     def _cleanse(self):
         """replace non-ascii characters with a single space"""
         self._corpus = [''.join([i if (i.isalpha() or ord(i) == 39)
