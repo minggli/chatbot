@@ -166,8 +166,6 @@ class TextMiner:
                 except AttributeError:
                     self._failed_urls.append(page_url)
                     continue
-                for i in aricl:
-                    print(i)
 
                 start_idx = int()
                 end_idx = int()

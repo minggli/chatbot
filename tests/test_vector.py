@@ -12,13 +12,20 @@ web_scraper = TextMiner(urls=urls, attrs=TEXTMINER, display=True)
 raw_data = web_scraper.extract().jsonify()
 corpus = [json['doc'] for json in raw_data]
 
-corpus = [word for doc in corpus for text in doc for word in text.split()]
-vectors = WordVectorizer().fit(corpus).transform()
+v = WordVectorizer()
+corpus = [token.text for doc in corpus for chunk in doc for token in v(chunk)]
+vectors = v.fit(corpus).transform()
 
 unrepresented_words = list()
 for k, w in enumerate(corpus):
     if vectors[k].all() == 0:
         unrepresented_words.append(w)
 
-print('{0:.4f}% of {1} unrepresented'.format(
-      (len(unrepresented_words) / len(corpus) * 100), len(corpus))
+unrepresented_words.sort(key=lambda x: len(x), reverse=True)
+
+for w in unrepresented_words:
+    print(w)
+    if len(w) < 5:
+        break
+
+print('{0:.4f}%'.format(len(unrepresented_words) / len(corpus) * 100))
