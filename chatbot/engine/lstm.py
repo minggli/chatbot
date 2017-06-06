@@ -11,9 +11,9 @@
 import numpy as np
 import tensorflow as tf
 
+from tqdm import tqdm
 from collections import Counter, Iterable
 from itertools import repeat, chain, islice
-from tqdm import tqdm
 from chatbot.nlp.embedding import WordVectorizer
 from sklearn.preprocessing import LabelBinarizer
 
@@ -44,10 +44,11 @@ v = WordVectorizer()
 tokenized_corpus = [[[word.text for word in v(sents)] for sents in doc]
                     for doc in corpus]
 
+
 ravelled = chain(*chain(*tokenized_corpus))
 
-word_frequency = islice(zip(*Counter(ravelled).most_common()), 1)
-word_to_ids = {word: ids for ids, word in enumerate(*word_frequency, start=1)}
+vocabulary = islice(zip(*Counter(ravelled).most_common()), 1)
+word_to_ids = {word: ids for ids, word in enumerate(*vocabulary, start=1)}
 
 
 def convert_to_ids(iterable):
@@ -63,7 +64,7 @@ def convert_to_ids(iterable):
 
 
 converted_corpus = convert_to_ids(tokenized_corpus)
-print(converted_corpus)
+print(converted_corpus[0][:5])
 
 # W = tf.Variable(tf.constant(0.0, shape=[vocab_size, embedding_dim]),
 #                 trainable=False, name="W")
