@@ -32,7 +32,7 @@ def resample(corpuses, labels, sample_size=1000, test_size=.2):
         resampled_labels.append(list(repeat(labels[n], sample_size)))
     resampled_corpuses, resampled_labels = \
         np.ravel(resampled_corpuses), np.ravel(resampled_labels)
-    return resampled_corpuses, resampled_labels
+    return resampled_corpuses.tolist(), resampled_labels.tolist()
 
 
 def encode_words(iterable, word_id_dict):
@@ -65,8 +65,8 @@ def multithreading(func):
 
 def enqueue(sent_encoded, label_encoded, num_epochs=None, shuffle=True):
     """returns an Ops Tensor with queued sentence and label pair"""
-    sent = tf.convert_to_tensor(sent_encoded, dtype=tf.uint8)
-    label = tf.convert_to_tensor(label_encoded, dtype=tf.uint8)
+    sent = tf.convert_to_tensor(sent_encoded, dtype=tf.int32)
+    label = tf.convert_to_tensor(label_encoded, dtype=tf.int32)
     input_queue = tf.train.slice_input_producer(
                                 tensor_list=[sent, label],
                                 num_epochs=num_epochs,
@@ -74,15 +74,32 @@ def enqueue(sent_encoded, label_encoded, num_epochs=None, shuffle=True):
     return input_queue
 
 
-def batch_generator(sent_encoded, label_encoded, batch_size=None, threads=4):
+def batch_generator(slice_input_queue, batch_size=None, threads=4):
     return tf.train.batch(
-                    tensors=[sent_encoded, label_encoded],
+                    tensors=[slice_input_queue[0], slice_input_queue[1]],
                     batch_size=batch_size,
                     # critical for varying sequence length, pad with 0 or ' '
                     dynamic_pad=True,
+                    enqueue_many=True,
                     num_threads=threads,
                     capacity=1e-3,
                     allow_smaller_final_batch=True)
+
+
+@multithreading
+def train(n, sess, x, y_, sent_batch,
+          label_batch, optimiser,
+          metric, loss):
+
+    for global_step in range(n):
+        sent, label = sess.run(sent_batch, label_batch)
+        _, train_accuracy, train_loss = \
+            sess.run(fetches=[optimiser, metric, loss],
+                     feed_dict={x: sent, y_: label})
+
+        print("step {0} of {3}, train accuracy: {1:.4f}"
+              " log loss: {2:.4f}".format(global_step, train_accuracy,
+                                          train_loss, n))
 
 
 STATE_SIZE = 24
@@ -103,12 +120,14 @@ label_encoder = LabelBinarizer().fit(labels)
 encoded_labels = label_encoder.transform(labels)
 
 features, labels = resample(encoded_corpus, encoded_labels)
+
+features = tf.stack(features, axis=0)
 sent_batch, label_batch = batch_generator(enqueue(features, labels, EPOCH))
 embedding_matrix = v.fit(word_to_ids).transform()
 embed_shape = embedding_matrix.shape
 
 x = tf.placeholder(dtype=tf.int32, shape=(None, STEP_SIZE), name='feature')
-y_ = tf.placeholder(dtype=tf.uint8, shape=(None, N_CLASS), name='one-hot')
+y_ = tf.placeholder(dtype=tf.int32, shape=(None, N_CLASS), name='one-hot')
 v_ = tf.placeholder(dtype=tf.float32, shape=embed_shape, name='vector')
 
 W = tf.get_variable(name='W',
@@ -148,6 +167,4 @@ init_embedd = W.assign(v_)
 sess = tf.Session()
 sess.run(fetches=[init_embedd, init], feed_dict={v_: embedding_matrix})
 
-sent, label = sess.run(sent_batch, label_batch)
-print(sent)
-sess.run(train_step, {x: sent, y_: label})
+train(1000, sess, x, y_, sent_batch, label_batch, train_step, accuracy, loss)
