@@ -74,9 +74,9 @@ def enqueue(sent_encoded, label_encoded, num_epochs=None, shuffle=True):
     return input_queue
 
 
-def batch_generator(queue, batch_size=None, threads=4):
+def batch_generator(sent_encoded, label_encoded, batch_size=None, threads=4):
     return tf.train.batch(
-                    tenors=[queue[0], queue[1]],
+                    tensors=[sent_encoded, label_encoded],
                     batch_size=batch_size,
                     # critical for varying sequence length, pad with 0 or ' '
                     dynamic_pad=True,
@@ -127,7 +127,7 @@ b_softmax = tf.get_variable(
                     shape=[N_CLASS],
                     initializer=tf.constant_initializer(0.0))
 
-cell = tf.contrib.rnn.LSTMCell(STATE_SIZE)
+cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
 
 outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                          inputs=vectorized_x,
@@ -149,4 +149,5 @@ sess = tf.Session()
 sess.run(fetches=[init_embedd, init], feed_dict={v_: embedding_matrix})
 
 sent, label = sess.run(sent_batch, label_batch)
+print(sent)
 sess.run(train_step, {x: sent, y_: label})
