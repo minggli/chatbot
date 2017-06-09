@@ -70,13 +70,13 @@ class _BaseRNN(object):
 
         if self.__class__.__name__ == 'RNN':
             for rnn_input in rnn_inputs:
-                output, state = self.__call__(rnn_input=rnn_input, state=state)
+                output, state = self(rnn_input=rnn_input, state=state)
                 output_receiver.append(output)
         elif self.__class__.__name__ == 'LSTM':
             for rnn_input in rnn_inputs:
-                output, state = self.__call__(cell_input=rnn_input,
-                                              cell_output=output,
-                                              cell_state=state)
+                output, state = self(cell_input=rnn_input,
+                                     cell_output=output,
+                                     cell_state=state)
                 output_receiver.append(output)
         else:
             raise Exception('_BaseRNN can not be called directly.')

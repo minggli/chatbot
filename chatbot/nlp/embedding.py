@@ -1,7 +1,7 @@
 """
 embedding
 
-embedding module produces word embeddings as part of implementation of:
+embedding module produces word embeddings
 
 This is done using downsized (1m) GloVe vectors via NLP framework: spaCy
 
@@ -9,9 +9,9 @@ GloVe: Global Vectors for Word Representation
 Pennington et al (2014)
 """
 
-import numpy as np
 import spacy
 import collections
+import numpy as np
 
 
 class VectorLookup:
@@ -25,11 +25,12 @@ class VectorLookup:
 
     @__corpus__.setter
     def __corpus__(self, value):
-        """index 0 reserved for out-of-vocabulary."""
+        """index 0 reserved for out-of-vocabulary words."""
         if isinstance(value, collections.Iterable) and \
                 not any(not isinstance(item, str) for item in value):
-            tokens = [word for word in value].insert(0, ' ')
-            self._corpus = self(' '.join(tokens))
+            tokens = [word for word in value]
+            tokens.insert(0, ' ')
+            self._corpus = tokens
         else:
             raise TypeError('corpus must be a iterable containing strings.')
 
@@ -43,5 +44,5 @@ class VectorLookup:
     def transform(self):
         """output embedding of shape [vocal_size, n_dimensions]"""
         # !!! investigate how resample word dimenssions
-        embeddings = [l.vector for l in self._corpus]
+        embeddings = [self(l).vector for l in self._corpus]
         return np.array(embeddings).reshape(-1, 300)
