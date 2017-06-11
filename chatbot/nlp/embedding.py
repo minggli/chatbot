@@ -29,7 +29,7 @@ class VectorLookup:
         if isinstance(value, collections.Iterable) and \
                 not any(not isinstance(item, str) for item in value):
             tokens = [word for word in value]
-            tokens.insert(0, ' ')
+            tokens.insert(0, 'UNKnown')
             self._corpus = tokens
         else:
             raise TypeError('corpus must be a iterable containing strings.')
