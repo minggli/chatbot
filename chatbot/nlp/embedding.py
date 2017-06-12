@@ -12,8 +12,8 @@ Pennington et al (2014)
 import spacy
 import numpy as np
 
-from collections import Counter
 from itertools import chain, islice
+from collections import Counter, Sequence
 
 
 class _BaseEmbedding(object):
@@ -23,10 +23,10 @@ class _BaseEmbedding(object):
         self.fit(raw_corpus)
 
     @staticmethod
-    def is_sentence(iterable):
+    def is_sentence(obj):
         """check if any element is not integer or string. if not then True."""
-        return isinstance(iterable, list) and \
-            not any(not isinstance(e, (int, str)) for e in iterable)
+        return isinstance(obj, Sequence) and not isinstance(obj, str) and \
+            not any(not isinstance(e, (int, str)) for e in obj)
 
     @property
     def __corpus__(self):
@@ -67,10 +67,10 @@ class Vectorizer(_BaseEmbedding):
         """vocabulary with 0 index reserved for unknown words."""
         self._ivocab = islice(zip(*Counter(chain(*chain(*self._corpus))).
                               most_common(n)), 1)
-        self._word_to_ids = {word: ids for ids, word in
-                             enumerate(*self._ivocab, start=1)}
-        self._word_to_ids.update({'UNKnown': 0})
-        self._vocab = [word for word in self._word_to_ids]
+        self._word2ids = {word: ids for ids, word in
+                          enumerate(*self._ivocab, start=1)}
+        self._word2ids.update({'UNKnown': 0})
+        self._vocab = [word for word in self._word2ids]
 
     def vectorize(self):
         """output embedding matrix of shape [vocab_size, n_dimensions]"""
@@ -88,18 +88,10 @@ class WordEmbedding(Vectorizer):
         self.pad_length = pad_length or self._max_length
         self.zero_pad = True if pad_length else zero_pad
 
-    def encode(self, iterable=None):
+    def encode(self):
         """recursively map word with id or 0 if not in vocabulary"""
-        iterable = iterable or self._corpus
-        rv = list()
-
-        for element in iterable:
-            if isinstance(element, list) and not self.is_sentence(element):
-                rv.append(self.encode(iterable=element))
-            elif self.is_sentence(element):
-                rv.append(self.encode(iterable=self._zero_pad(element)))
-            elif isinstance(element, str):
-                rv.append(self._word_to_ids.get(element, 0))
+        rv = [[[self._word2ids.get(word, 0) for word in self._zero_pad(sent)]
+              for sent in doc] for doc in self._corpus]
         return rv
 
     def _zero_pad(self, sequence):
