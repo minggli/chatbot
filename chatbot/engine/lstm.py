@@ -13,10 +13,10 @@ import random
 import numpy as np
 
 from tqdm import tqdm
-from collections import Counter, Iterable
+from collections import Iterable
 from functools import wraps
-from itertools import repeat, chain, islice
-from chatbot.nlp.embedding import VectorLookup
+from itertools import repeat
+from chatbot.nlp.embedding import WordEmbedding
 from sklearn.preprocessing import LabelBinarizer
 
 from . import corpus, labels
@@ -94,7 +94,7 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
                     # critical for varying sequence length, pad with 0 or ' '
                     dynamic_pad=True,
                     num_threads=threads,
-                    capacity=1e-3,
+                    capacity=1e3,
                     allow_smaller_final_batch=True)
 
 
@@ -102,7 +102,7 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
 def train(n, x, y_, sent_batch, label_batch, optimiser, metric, loss):
     for global_step in range(n):
         sent, label = sess.run(fetches=[sent_batch, label_batch])
-        print(sent)
+
         _, train_accuracy, train_loss = \
             sess.run(fetches=[optimiser, metric, loss],
                      feed_dict={x: sent, y_: label})
@@ -118,16 +118,21 @@ N_CLASS = len(labels)
 BATCH_SIZE = 50
 EPOCH = 200
 
-v = VectorLookup()
-tokens = [[[word.text for word in v(sents)] for sents in document]
-          for document in corpus]
-vocab = islice(zip(*Counter(chain(*chain(*tokens))).most_common()), 1)
-word_to_ids = {word: ids for ids, word in enumerate(*vocab, start=1)}
-
-embedding_matrix = v.fit(word_to_ids).transform()
+corpus_encoder = WordEmbedding(corpus)
+embedding_matrix = corpus_encoder.vectorize()
 embed_shape = embedding_matrix.shape
+encoded_corpus = corpus_encoder.encode()
 
-encoded_corpus = zero_pad(encode_corpus(tokens, word_to_ids), length=STEP_SIZE)
+print(encoded_corpus[0][:5])
+# v = Vectorizer()
+# tokens = [[[word.text for word in v(sents)] for sents in document]
+#           for document in corpus]
+# vocab = islice(zip(*Counter(chain(*chain(*tokens))).most_common()), 1)
+# word_to_ids = {word: ids for ids, word in enumerate(*vocab, start=1)}
+#
+# embedding_matrix = v.fit(word_to_ids).transform()
+#
+# encoded_corpus = zero_pad(encode_corpus(tokens, word_to_ids), length=STEP_SIZE)
 
 label_encoder = LabelBinarizer().fit(labels)
 encoded_labels = label_encoder.transform(labels)
@@ -159,7 +164,7 @@ initial_state = cell.zero_state(batch_size=BATCH_SIZE, dtype=tf.float32)
 outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                          inputs=word_vectors,
                                          initial_state=initial_state)
-
+# [200, 24]
 logits = tf.matmul(outputs[-1], W_softmax) + b_softmax
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=y_)
