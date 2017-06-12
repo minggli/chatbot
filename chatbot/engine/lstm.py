@@ -118,12 +118,13 @@ N_CLASS = len(labels)
 BATCH_SIZE = 50
 EPOCH = 200
 
-corpus_encoder = WordEmbedding(corpus)
-embedding_matrix = corpus_encoder.vectorize()
-embed_shape = embedding_matrix.shape
-encoded_corpus = corpus_encoder.encode()
+corpus_encoder = WordEmbedding(corpus, zero_pad=False)
 
+# embedding_matrix = corpus_encoder.vectorize()
+# embed_shape = embedding_matrix.shape
+encoded_corpus = corpus_encoder.encode()
 print(encoded_corpus[0][:5])
+
 # v = Vectorizer()
 # tokens = [[[word.text for word in v(sents)] for sents in document]
 #           for document in corpus]
@@ -138,48 +139,48 @@ label_encoder = LabelBinarizer().fit(labels)
 encoded_labels = label_encoder.transform(labels)
 
 features, labels = resample(encoded_corpus, encoded_labels)
-
-x = tf.placeholder(dtype=tf.int32, shape=(None, STEP_SIZE), name='feature')
-y_ = tf.placeholder(dtype=tf.uint8, shape=(None, N_CLASS), name='label')
-v_ = tf.placeholder(dtype=tf.float32, shape=embed_shape, name='vector')
-
-embeddings = tf.get_variable(name='W',
-                             shape=embed_shape,
-                             initializer=tf.constant_initializer(0.0),
-                             trainable=False)
-
-word_vectors = tf.nn.embedding_lookup(embeddings, x)
-
-W_softmax = tf.get_variable(
-                    name='W_yh',
-                    shape=[STATE_SIZE, N_CLASS],
-                    initializer=tf.truncated_normal_initializer(stddev=0.1))
-b_softmax = tf.get_variable(
-                    name='b_y',
-                    shape=[N_CLASS],
-                    initializer=tf.constant_initializer(0.0))
-
-cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
-initial_state = cell.zero_state(batch_size=BATCH_SIZE, dtype=tf.float32)
-outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
-                                         inputs=word_vectors,
-                                         initial_state=initial_state)
-# [200, 24]
-logits = tf.matmul(outputs[-1], W_softmax) + b_softmax
-cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
-                                                        labels=y_)
-loss = tf.reduce_mean(cross_entropy)
-train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
-
-correct = tf.equal(tf.argmax(logits, 1), tf.argmax(y_, 1))
-accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
-
-init = tf.global_variables_initializer()
-init_embedd = embeddings.assign(v_)
-
-sess = tf.Session()
-sess.run(fetches=[init_embedd, init], feed_dict={v_: embedding_matrix})
-
-with sess:
-    sent_batch, label_batch = batch_generator(*enqueue(features, labels), BATCH_SIZE)
-    train(1000, x, y_, sent_batch, label_batch, train_step, accuracy, loss)
+#
+# x = tf.placeholder(dtype=tf.int32, shape=(None, STEP_SIZE), name='feature')
+# y_ = tf.placeholder(dtype=tf.uint8, shape=(None, N_CLASS), name='label')
+# v_ = tf.placeholder(dtype=tf.float32, shape=embed_shape, name='vector')
+#
+# embeddings = tf.get_variable(name='W',
+#                              shape=embed_shape,
+#                              initializer=tf.constant_initializer(0.0),
+#                              trainable=False)
+#
+# word_vectors = tf.nn.embedding_lookup(embeddings, x)
+#
+# W_softmax = tf.get_variable(
+#                     name='W_yh',
+#                     shape=[STATE_SIZE, N_CLASS],
+#                     initializer=tf.truncated_normal_initializer(stddev=0.1))
+# b_softmax = tf.get_variable(
+#                     name='b_y',
+#                     shape=[N_CLASS],
+#                     initializer=tf.constant_initializer(0.0))
+#
+# cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
+# initial_state = cell.zero_state(batch_size=BATCH_SIZE, dtype=tf.float32)
+# outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
+#                                          inputs=word_vectors,
+#                                          initial_state=initial_state)
+# # [200, 24]
+# logits = tf.matmul(outputs[-1], W_softmax) + b_softmax
+# cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
+#                                                         labels=y_)
+# loss = tf.reduce_mean(cross_entropy)
+# train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
+#
+# correct = tf.equal(tf.argmax(logits, 1), tf.argmax(y_, 1))
+# accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
+#
+# init = tf.global_variables_initializer()
+# init_embedd = embeddings.assign(v_)
+#
+# sess = tf.Session()
+# sess.run(fetches=[init_embedd, init], feed_dict={v_: embedding_matrix})
+#
+# with sess:
+#     sent_batch, label_batch = batch_generator(*enqueue(features, labels), BATCH_SIZE)
+#     train(1000, x, y_, sent_batch, label_batch, train_step, accuracy, loss)

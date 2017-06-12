@@ -69,8 +69,8 @@ class Vectorizer(_BaseEmbedding):
                               most_common(n)), 1)
         self._word_to_ids = {word: ids for ids, word in
                              enumerate(*self._ivocab, start=1)}
+        self._word_to_ids.update({'UNKnown': 0})
         self._vocab = [word for word in self._word_to_ids]
-        self._vocab.insert(0, 'UNKnown')
 
     def vectorize(self):
         """output embedding matrix of shape [vocab_size, n_dimensions]"""
@@ -83,30 +83,30 @@ class WordEmbedding(Vectorizer):
     """encode word tokens and map with embedding matrix"""
     def __init__(self, raw_corpus, zero_pad=None, pad_length=None, n=None):
         super(WordEmbedding, self).__init__(raw_corpus, n=n)
+
+        self._max_length = max(len(x) for doc in self._corpus for x in doc)
+        self.pad_length = pad_length or self._max_length
         self.zero_pad = True if pad_length else zero_pad
-        if self.zero_pad:
-            self._max_length = max(len(x) for doc in self._corpus for x in doc)
-            self.pad_length = pad_length or self._max_length
 
     def encode(self, iterable=None):
         """recursively map word with id or 0 if not in vocabulary"""
         iterable = iterable or self._corpus
+        rv = list()
 
-        converted = list()
         for element in iterable:
-            if isinstance(element, str):
-                converted.append(self._word_to_ids.get(element, 0))
-            elif not self.is_sentence(element):
-                converted.append(self.encode(iterable=element))
+            if isinstance(element, list) and not self.is_sentence(element):
+                rv.append(self.encode(iterable=element))
             elif self.is_sentence(element):
-                converted.append(self.encode(iterable=self._zero_pad(element)))
-        return converted
+                rv.append(self.encode(iterable=self._zero_pad(element)))
+            elif isinstance(element, str):
+                rv.append(self._word_to_ids.get(element, 0))
+        return rv
 
     def _zero_pad(self, sequence):
         """pad shorter sequences with 0 (as if out of vocabulary), temporary
         solution until figure out dynamic padding (e.g. train.batch)"""
         if self.zero_pad:
-            sequence.extend([0] * (self.pad_length - len(sequence)))
+            sequence.extend(['UNKnown'] * (self.pad_length - len(sequence)))
             return sequence[:self.pad_length]
         elif not self.zero_pad:
             return sequence

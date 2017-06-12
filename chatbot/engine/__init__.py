@@ -8,6 +8,6 @@ urls = extracted_urls(base_url=NHS_BASE_URL)
 web_scraper = TextMiner(urls=urls, attrs=TEXTMINER, display=True)
 
 raw_data = web_scraper.extract().jsonify()
-corpus = [json['doc'] for json in raw_data][:20]
-labels = [json['label'] for json in raw_data][:20]
+corpus = [json['doc'] for json in raw_data]
+labels = [json['label'] for json in raw_data]
 leaflets = {json['label']: json['url'].lower() for json in raw_data}
