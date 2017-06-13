@@ -231,12 +231,12 @@ class TextMiner:
         for text in content:
             if not content.index(text):
                 text = text.replace(' - NHS Choices', '')
-            text = text.translate(trans)
-            if content.index(text):
+            else:
+                text = text.translate(trans)
                 text = self.__class__.remove_numeric(text)
-            text = self.__class__.remove_date(text)
-            text = self.__class__.remove_email(text)
-            text = self.__class__.split_contraction(text)
+                text = self.__class__.remove_date(text)
+                text = self.__class__.remove_email(text)
+                text = self.__class__.split_contraction(text)
             cleansed_content.append(text)
         return cleansed_content
 
