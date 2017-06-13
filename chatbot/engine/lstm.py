@@ -7,7 +7,7 @@
     Distributed Representations of Words and Phrases and their Compositionality
     Mikolov et al. 2013
 """
-
+import os
 import random
 
 import tensorflow as tf
@@ -19,6 +19,8 @@ from chatbot.nlp.embedding import WordEmbedding
 from sklearn.preprocessing import LabelBinarizer
 
 from . import corpus, labels
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 def resample(corpuses, labels, sample_size=1000, test_size=.2):
@@ -65,7 +67,7 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
                     tensors=[sent_queue, label_queue],
                     batch_size=batch_size,
                     # critical for varying sequence length, pad with 0 or ' '
-                    dynamic_pad=True,
+                    dynamic_pad=False,
                     num_threads=threads,
                     capacity=1e3,
                     allow_smaller_final_batch=True)
@@ -75,7 +77,6 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
 def train(n, x, y_, sent_batch, label_batch, optimiser, metric, loss):
     for global_step in range(n):
         sent, label = sess.run(fetches=[sent_batch, label_batch])
-
         _, train_accuracy, train_loss = \
             sess.run(fetches=[optimiser, metric, loss],
                      feed_dict={x: sent, y_: label})
@@ -84,14 +85,14 @@ def train(n, x, y_, sent_batch, label_batch, optimiser, metric, loss):
                                           train_loss, n))
 
 
-STATE_SIZE = 24
-STEP_SIZE = 200
+STATE_SIZE = 48
+STEP_SIZE = 70
 N_CLASS = len(labels)
 
 BATCH_SIZE = 50
 EPOCH = 200
 
-corpus_encoder = WordEmbedding(corpus, zero_pad=True)
+corpus_encoder = WordEmbedding(corpus, zero_pad=True, pad_length=STEP_SIZE)
 encoded_corpus = corpus_encoder.encode()
 
 label_encoder = LabelBinarizer().fit(labels)
@@ -104,15 +105,16 @@ embed_shape = embedding_matrix.shape
 
 x = tf.placeholder(dtype=tf.int32, shape=(None, STEP_SIZE), name='feature')
 y_ = tf.placeholder(dtype=tf.uint8, shape=(None, N_CLASS), name='label')
-v_ = tf.placeholder(dtype=tf.float32, shape=embed_shape, name='vector')
 
-embeddings = tf.get_variable(name='W',
-                             shape=embed_shape,
-                             initializer=tf.constant_initializer(0.0),
-                             trainable=False)
+embeddings = \
+        tf.get_variable(name='embeddings',
+                        shape=embed_shape,
+                        initializer=tf.constant_initializer(embedding_matrix),
+                        trainable=False)
 
 word_vectors = tf.nn.embedding_lookup(embeddings, x)
 
+# [BATCH_SIZE, STEP_SIZE, 300]
 W_softmax = tf.get_variable(
                     name='W_yh',
                     shape=[STATE_SIZE, N_CLASS],
@@ -123,25 +125,23 @@ b_softmax = tf.get_variable(
                     initializer=tf.constant_initializer(0.0))
 
 cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
-initial_state = cell.zero_state(batch_size=BATCH_SIZE, dtype=tf.float32)
 outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                          inputs=word_vectors,
-                                         initial_state=initial_state)
-# [200, 24]
-logits = tf.matmul(outputs[-1], W_softmax) + b_softmax
+                                         dtype=tf.float32)
+
+logits = tf.matmul(final_state[1], W_softmax) + b_softmax
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=y_)
 loss = tf.reduce_mean(cross_entropy)
-train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-4).minimize(loss)
 
 correct = tf.equal(tf.argmax(logits, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
 init = tf.global_variables_initializer()
-init_embedd = embeddings.assign(v_)
 
 sess = tf.Session()
-sess.run(fetches=[init_embedd, init], feed_dict={v_: embedding_matrix})
+sess.run(init)
 
 with sess:
     sent_batch, label_batch = batch_generator(*enqueue(features, labels), BATCH_SIZE)

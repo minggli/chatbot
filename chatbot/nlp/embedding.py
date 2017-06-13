@@ -69,8 +69,9 @@ class Vectorizer(_BaseEmbedding):
                               most_common(n)), 1)
         self._word2ids = {word: ids for ids, word in
                           enumerate(*self._ivocab, start=1)}
-        self._word2ids.update({'UNKnown': 0})
         self._vocab = [word for word in self._word2ids]
+        self._vocab.insert(0, 'UNKnown')
+        self._word2ids.update({'UNKnown': 0})
 
     def vectorize(self):
         """output embedding matrix of shape [vocab_size, n_dimensions]"""
