@@ -85,8 +85,8 @@ def train(n, x, y_, sent_batch, label_batch, optimiser, metric, loss):
                                           train_loss, n))
 
 
-STATE_SIZE = 48
-STEP_SIZE = 70
+STATE_SIZE = 24
+STEP_SIZE = 20
 N_CLASS = len(labels)
 
 BATCH_SIZE = 50
@@ -112,7 +112,7 @@ embeddings = \
                         initializer=tf.constant_initializer(embedding_matrix),
                         trainable=False)
 
-word_vectors = tf.nn.embedding_lookup(embeddings, x)
+rnn_inputs = tf.nn.embedding_lookup(embeddings, x)
 
 # [BATCH_SIZE, STEP_SIZE, 300]
 W_softmax = tf.get_variable(
@@ -126,14 +126,18 @@ b_softmax = tf.get_variable(
 
 cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
 outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
-                                         inputs=word_vectors,
+                                         inputs=rnn_inputs,
                                          dtype=tf.float32)
 
+# outputs in shape [BATCH_SIZE, STEP_SIZE, STATE_SIZE]
+# outputs = tf.transpose(a=outputs, perm=[1, 0, 2])
+# last = tf.gather(params=outputs, indices=int(outputs.get_shape()[0] - 1))
+# last in shape [BATCH_SIZE, STATE_SIZE]
 logits = tf.matmul(final_state[1], W_softmax) + b_softmax
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=y_)
 loss = tf.reduce_mean(cross_entropy)
-train_step = tf.train.RMSPropOptimizer(1e-4).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
 
 correct = tf.equal(tf.argmax(logits, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
@@ -145,4 +149,4 @@ sess.run(init)
 
 with sess:
     sent_batch, label_batch = batch_generator(*enqueue(features, labels), BATCH_SIZE)
-    train(1000, x, y_, sent_batch, label_batch, train_step, accuracy, loss)
+    train(5000, x, y_, sent_batch, label_batch, train_step, accuracy, loss)
