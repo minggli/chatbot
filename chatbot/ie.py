@@ -13,6 +13,7 @@ import string
 import pickle
 import requests
 
+from tqdm import tqdm
 from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
@@ -149,11 +150,11 @@ class TextMiner:
             self._mp_get()
 
             print('starting to extract information from websites...',
-                  flush=True, end='')
+                  flush=True)
 
             self._failed_urls.clear()
 
-            for i, page_url in enumerate(self._urls):
+            for i, page_url in tqdm(enumerate(self._urls), miniters=1):
                 page = self._soups[i]
                 try:
                     subj = page.find('meta', attrs=self._attrs[
@@ -213,7 +214,7 @@ class TextMiner:
                 self._urls.remove(f_url)
                 self._count -= 1
 
-            print('done. {} of {} failed to be extracted.'.format(
+            print('Done. {} of {} failed to be extracted.'.format(
                 len(set(self._failed_urls)), len(self._soups)), flush=True)
 
             with open(DATA_LOC + 'symptoms.pkl', 'wb') as f:
@@ -231,6 +232,9 @@ class TextMiner:
             if not content.index(text):
                 text = text.replace(' - NHS Choices', '')
             text = text.translate(trans)
+            if content.index(text):
+                text = self.__class__.remove_numeric(text)
+            text = self.__class__.remove_date(text)
             text = self.__class__.remove_email(text)
             text = self.__class__.split_contraction(text)
             cleansed_content.append(text)
@@ -252,4 +256,16 @@ class TextMiner:
     def remove_email(texts):
         """detect email address substrings and remove"""
         regex = re.compile(pattern=r'[\w\.-]+@[\w\.-]+', flags=re.IGNORECASE)
+        return regex.sub(lambda x: '', texts)
+
+    @staticmethod
+    def remove_date(texts):
+        """detect dates and remove"""
+        regex = re.compile(pattern=r'\d{2}[-/]\d{2}[-/]\d{4}')
+        return regex.sub(lambda x: '', texts)
+
+    @staticmethod
+    def remove_numeric(texts):
+        """detect and remove numeric strings"""
+        regex = re.compile(pattern=r"[+-]?\d+(?:\.\d+)?")
         return regex.sub(lambda x: '', texts)
