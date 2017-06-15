@@ -18,9 +18,9 @@ from collections import Counter, Sequence
 
 class _BaseEmbedding(object):
     """base class for word embedding through spacy"""
-    def __init__(self, raw_corpus):
+    def __init__(self):
+        self._corpus = None
         self._nlp = spacy.load('en_core_web_md')
-        self.fit(raw_corpus)
 
     @staticmethod
     def is_sentence(obj):
@@ -47,6 +47,15 @@ class _BaseEmbedding(object):
         self._corpus = [[[word.text for word in self(sents)]
                         for sents in document] for document in value]
 
+        ivocab = islice(zip(*Counter(chain(*chain(*self._corpus))).
+                        most_common(self._top)), 1)
+        self._word2ids = {word: ids for ids, word in
+                          enumerate(*ivocab, start=2)}
+        self._vocab = [word for word in self._word2ids]
+        self._vocab.insert(0, 'UNKnown')
+        self._vocab.insert(1, '|PAD|')
+        self._word2ids.update({'UNKnown': 0, '|PAD|': 1})
+
     def __call__(self, text):
         return self._nlp(text)
 
@@ -59,40 +68,37 @@ class _BaseEmbedding(object):
 
 class Vectorizer(_BaseEmbedding):
     """produce embedding matrix"""
-    def __init__(self, raw_corpus, n=None):
-        super(Vectorizer, self).__init__(raw_corpus)
-        self._get_vocabulary(n)
-
-    def _get_vocabulary(self, n):
-        """vocabulary with 0 index reserved for unknown words."""
-        self._ivocab = islice(zip(*Counter(chain(*chain(*self._corpus))).
-                              most_common(n)), 1)
-        self._word2ids = {word: ids for ids, word in
-                          enumerate(*self._ivocab, start=1)}
-        self._vocab = [word for word in self._word2ids]
-        self._vocab.insert(0, 'UNKnown')
-        self._word2ids.update({'UNKnown': 0})
+    def __init__(self, top=None):
+        super(Vectorizer, self).__init__()
+        self._top = top
 
     def vectorize(self):
         """output embedding matrix of shape [vocab_size, n_dimensions]"""
         # !!! investigate how downsample word dimensions
-        zero_replace = self('-').vector
+        if not self._corpus:
+            raise Exception('fit corpus first.')
+
+        zero_replace = np.full(300, 1e-8)
         embeddings = [self(l).vector if self(l).has_vector else zero_replace
                       for l in self._vocab]
+        embeddings[1] = np.zeros(300)
         return np.array(embeddings).reshape(-1, 300)
 
 
 class WordEmbedding(Vectorizer):
     """encode word tokens and map with embedding matrix"""
-    def __init__(self, raw_corpus, zero_pad=None, pad_length=None, n=None):
-        super(WordEmbedding, self).__init__(raw_corpus, n=n)
+    def __init__(self, top=None):
+        super(WordEmbedding, self).__init__(top=top)
+
+    def encode(self, zero_pad=None, pad_length=None):
+        """recursively map word with id or 0 if not in vocabulary"""
+        if not self._corpus:
+            raise Exception('fit corpus first.')
 
         self._max_length = max(len(x) for doc in self._corpus for x in doc)
         self.pad_length = pad_length or self._max_length
         self.zero_pad = True if pad_length else zero_pad
 
-    def encode(self):
-        """recursively map word with id or 0 if not in vocabulary"""
         rv = [[[self._word2ids.get(word, 0) for word in self._zero_pad(sent)]
               for sent in doc] for doc in self._corpus]
         return rv
@@ -101,7 +107,7 @@ class WordEmbedding(Vectorizer):
         """pad shorter sequences with 0 (as if out of vocabulary), temporary
         solution until figure out dynamic padding (e.g. train.batch)"""
         if self.zero_pad:
-            sequence.extend(['UNKnown'] * (self.pad_length - len(sequence)))
+            sequence.extend(['|PAD|'] * (self.pad_length - len(sequence)))
             return sequence[:self.pad_length]
         elif not self.zero_pad:
             return sequence
