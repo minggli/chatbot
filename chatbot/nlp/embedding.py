@@ -76,7 +76,9 @@ class Vectorizer(_BaseEmbedding):
     def vectorize(self):
         """output embedding matrix of shape [vocab_size, n_dimensions]"""
         # !!! investigate how downsample word dimensions
-        embeddings = [self(l).vector for l in self._vocab]
+        zero_replace = self('-').vector
+        embeddings = [self(l).vector if self(l).has_vector else zero_replace
+                      for l in self._vocab]
         return np.array(embeddings).reshape(-1, 300)
 
 
