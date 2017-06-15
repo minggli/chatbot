@@ -1,8 +1,11 @@
 """
-    lstm (needs modularisation and abstraction)
+    lstm (needs modularisation and further refactoring)
 
-    document classification through recurrent neural network which models in
-    sequential orders of words in their vector representation.
+    sequence classification of variable lengths through
+    Long-short Term Memory (LSTM) which models surrounding context of words.
+
+    Words are represented in 300-dimension vectors to allow generalization over
+    semantic redundancy.
 
     Distributed Representations of Words and Phrases and their Compositionality
     Mikolov et al. 2013
@@ -13,6 +16,7 @@ import random
 import tensorflow as tf
 import numpy as np
 
+from tqdm import tqdm
 from functools import wraps
 from sklearn import model_selection, preprocessing
 
@@ -61,9 +65,7 @@ def size(sequence):
     sequence of vectors comes in shape of [batch_size, STEP_SIZE, dimensions]
     """
     flag = tf.sign(tf.reduce_max(tf.abs(sequence), axis=2))
-    # [BATCH_SIZE, STEP_SIZE] with 0 or 1
     length = tf.reduce_sum(flag, axis=1)
-    # [BATCH_SIZE] with number of 1s used as true lengths
     return tf.cast(length, tf.int32)
 
 
@@ -72,17 +74,28 @@ def find_last(outputs, length):
     required using dynamic unrolling dynamic_rnn API. this function locates
     the last non-zero output for calculating logits
     """
-    # outputs in shape [BATCH_SIZE, STEP_SIZE, STATE_SIZE]
-    # length in shape [BATCH_SIZE]
+    # outputs in shape [BATCH_SIZE, STEP_SIZE, STATE_SIZE], length [BATCH_SIZE]
     b, t, st = tf.unstack(tf.shape(outputs))
     flat_index = tf.range(b) * t + (length - 1)
-    # flat_index 1-D tensor in shape [BATCH_SIZE]
     zeros = tf.zeros(shape=[b], dtype=tf.int32)
     non_neg_flat_index = tf.maximum(zeros, flat_index)
     flat_outputs = tf.reshape(outputs, [-1, st])
-    # outputs flattened to [BATCH_SIZE * STEP_SIZE, STATE_SIZE]
     last_outputs = tf.gather(flat_outputs, non_neg_flat_index)
     return last_outputs
+
+
+def timeit(func):
+    """calculate time for a function to complete"""
+    import time
+
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        output = func(*args, **kwargs)
+        end = time.time()
+        print('function {0} took {1:0.3f} s'.format(
+              func.__name__, (end - start) * 1))
+        return output
+    return wrapper
 
 
 def multithreading(func):
@@ -124,18 +137,18 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
 
 @multithreading
 def train(n, x, y_, train_sent_batch, train_label_batch, valid_sent_batch,
-          valid_label_batch, keep_prob, optimiser, metric, loss):
-    print(embeddings.get_shape())
+          valid_label_batch, keep_prob, optimiser, metric, loss, verbose):
 
-    for global_step in range(n):
+    for global_step in tqdm(range(n), miniters=1):
         train_sent, train_label = \
                     sess.run(fetches=[train_sent_batch, train_label_batch])
         _, train_accuracy, train_loss = \
             sess.run(fetches=[optimiser, metric, loss],
                      feed_dict={x: train_sent, y_: train_label, keep_prob: .8})
 
-        print("step {0} of {3}, train accuracy: {1:.4f} log loss: {2:.4f}"
-              .format(global_step, train_accuracy, train_loss, n))
+        if verbose:
+            print("step {0} of {3}, train accuracy: {1:.4f} log loss: {2:.4f}"
+                  .format(global_step, train_accuracy, train_loss, n))
 
         if global_step and global_step % 10 == 0:
             valid_sent, valid_label = \
@@ -144,27 +157,10 @@ def train(n, x, y_, train_sent_batch, train_label_batch, valid_sent_batch,
                     fetches=[metric, loss],
                     feed_dict={x: valid_sent, y_: valid_label, keep_prob: 1})
 
-            print("step {0} of {3}, valid accuracy: {1:.4f} log loss: {2:.4f}"
-                  .format(global_step, valid_accuracy, valid_loss, n))
-
-
-def inference(query, sess, encoder, classes, limit=5, decision_boundary=.85):
-    """produce probabilities of most probable topic"""
-
-    query_encoder = encoder.fit(query)
-    # use initiated encoder from session for efficiency.
-    encoded_query = query_encoder.encode(zero_pad=True)
-    # [1, 1, max_length]
-    # !!! TODO what if query max length exceeds corpus max lenth
-    embedding_matrix_query = query_encoder.vectorize()
-
-    sess.run(fetches=init_embedd, feed_dict={v: embedding_matrix_query})
-    print(tf.shape(embeddings))
-    probabilities = sess.run(fetches=[probs], feed_dict={x: encoded_query, keep_prob: .8})
-    class_prob = np.mean(probabilities, axis=0)
-    samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
-
-    return samples
+            if verbose:
+                print("step {0} of {3}, valid accuracy: {1:.4f} "
+                      "log loss: {2:.4f}".format(global_step, valid_accuracy,
+                                                 valid_loss, n))
 
 
 N_DOC = 20
@@ -172,33 +168,28 @@ corpus = corpus[:N_DOC]
 labels = labels[:N_DOC]
 
 STATE_SIZE = 24
-STEP_SIZE = 200
+STEP_SIZE = 30
 N_CLASS = len(labels)
 BATCH_SIZE = 50
 EPOCH = 200
 
 corpus_encoder = WordEmbedding(top=None).fit(corpus)
-encoded_corpus = corpus_encoder.encode(zero_pad=True)
-STEP_SIZE = corpus_encoder._max_length
+encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
 
-label_encoder = preprocessing.LabelBinarizer().fit(labels)
-encoded_labels = label_encoder.transform(labels)
-classes = label_encoder.classes_
+l_encoder = preprocessing.LabelBinarizer().fit(labels)
+encoded_labels, classes = l_encoder.transform(labels), l_encoder.classes_
+
 embedding_matrix = corpus_encoder.vectorize()
 embed_shape = embedding_matrix.shape
 
 x = tf.placeholder(dtype=tf.int32, shape=(None, STEP_SIZE), name='feature')
 y_ = tf.placeholder(dtype=tf.uint8, shape=(None, N_CLASS), name='label')
-v = tf.placeholder(dtype=tf.float32, shape=(None, 300), name='vector')
+v = tf.placeholder(dtype=tf.float32, shape=(None, 300), name='vectors')
 keep_prob = tf.placeholder(dtype=tf.float32, name='keep_rate')
 
-embeddings = tf.get_variable(name='embeddings',
-                             shape=embed_shape,
-                             validate_shape=False,
-                             trainable=False)
+embeddings = tf.get_variable(name='embedd', shape=embed_shape, trainable=False)
 
-rnn_inputs = tf.reshape(tf.nn.embedding_lookup(embeddings, x), shape=[-1, STEP_SIZE, 300])
-# [BATCH_SIZE, STEP_SIZE, DIMENSIONS]
+rnn_inputs = tf.nn.embedding_lookup(embeddings, x)
 
 with tf.variable_scope('softmax'):
     W_softmax = tf.get_variable(
@@ -220,13 +211,13 @@ outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                          sequence_length=sent_length,
                                          dtype=tf.float32)
 
-# outputs in shape [BATCH_SIZE, STEP_SIZE, STATE_SIZE]
 last = find_last(outputs, sent_length)
 logits = tf.matmul(last, W_softmax) + b_softmax
 # logits in shape [BATCH_SIZE, N_CLASS]
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=y_)
 # softmax cross entropy in shape [BATCH_SIZE, ]
+# TODO mask padded loss to accelerate training
 loss = tf.reduce_mean(cross_entropy)
 train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
 
@@ -235,23 +226,32 @@ correct = tf.equal(tf.argmax(probs, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
 init = tf.global_variables_initializer()
-init_embedd = embeddings.assign(v)
+init_embedd = tf.assign(embeddings, v, validate_shape=False)
 
 sess = tf.Session()
-sess.run([init])
-sess.run([init_embedd], feed_dict={v: embedding_matrix})
+sess.run(init)
+sess.run(init_embedd, feed_dict={v: embedding_matrix})
 
-with sess, tf.device('/cpu:0'):
+with sess.as_default(), tf.device('/cpu:0'):
     data = flatten_split_resample(encoded_corpus, encoded_labels,
-                                  valid_ratio=.2,
-                                  sample_size=1000)
+                                  valid_ratio=.2, sample_size=1000)
     train_sent_batch, train_label_batch = \
         batch_generator(*enqueue(*data[0]), BATCH_SIZE)
     valid_sent_batch, valid_label_batch = \
         batch_generator(*enqueue(*data[1]), BATCH_SIZE)
-    train(200, x, y_, train_sent_batch, train_label_batch, valid_sent_batch,
-          valid_label_batch, keep_prob, train_step, accuracy, loss)
+    train(300, x, y_, train_sent_batch, train_label_batch, valid_sent_batch,
+          valid_label_batch, keep_prob, train_step, accuracy, loss, False)
 
-    query = [['Hi, I have headache and cannot sleep easily.']]
-    a = inference(query, sess, corpus_encoder, classes)
-    print(a)
+
+def inference(query, sess, encoder=corpus_encoder, classes=classes, limit=5,
+              decision_boundary=.85):
+    """produce probabilities of most probable topic"""
+    encoder, original_pad_length = encoder.fit([query]), encoder.pad_length
+    encoded_query = encoder.encode(pad_length=original_pad_length)
+    encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
+    sess.run(fetches=init_embedd, feed_dict={v: encoder.vectorize()})
+    probabilities = sess.run(fetches=probs,
+                             feed_dict={x: encoded_query, keep_prob: 1})
+    class_prob = np.mean(probabilities, axis=0).tolist()
+    samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
+    return feed_conversation(samples, limit, decision_boundary)
