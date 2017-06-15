@@ -14,10 +14,11 @@ import pickle
 import requests
 
 from tqdm import tqdm
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
 from multiprocessing import Pool
 
+from .serializers import jsonify_corpus
 from .settings import DATA_LOC, EN_CONTRACTIONS
 
 sys.setrecursionlimit(30000)
@@ -241,9 +242,7 @@ class TextMiner:
         return cleansed_content
 
     def jsonify(self):
-        return [{"url": key,
-                 "label": self._output[key][0],
-                 "doc": self._output[key][1:]} for key in self._output]
+        return jsonify_corpus(self._output)
 
     @staticmethod
     def split_contraction(texts, lib=EN_CONTRACTIONS):
