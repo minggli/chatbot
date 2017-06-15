@@ -52,9 +52,9 @@ class _BaseEmbedding(object):
         self._word2ids = {word: ids for ids, word in
                           enumerate(*ivocab, start=2)}
         self._vocab = [word for word in self._word2ids]
-        self._vocab.insert(0, 'UNKnown')
+        self._vocab.insert(0, '|UNK|')
         self._vocab.insert(1, '|PAD|')
-        self._word2ids.update({'UNKnown': 0, '|PAD|': 1})
+        self._word2ids.update({'|UNK|': 0, '|PAD|': 1})
 
     def __call__(self, text):
         return self._nlp(text)
@@ -78,7 +78,7 @@ class Vectorizer(_BaseEmbedding):
         if not self._corpus:
             raise Exception('fit corpus first.')
 
-        zero_replace = np.full(300, 1e-8)
+        zero_replace = np.full(300, 1e-6)
         embeddings = [self(l).vector if self(l).has_vector else zero_replace
                       for l in self._vocab]
         embeddings[1] = np.zeros(300)
