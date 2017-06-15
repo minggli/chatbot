@@ -57,7 +57,7 @@ def preprocess(q):
 
 def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
     """spell out most probable diseases and respective percentages."""
-    words = preprocess(query)
+    words = preprocess(' '.join(query))
     print('understanding {}...'.format(words))
     objects = engine.prob_classify(words)
     keys = list(objects.samples())
