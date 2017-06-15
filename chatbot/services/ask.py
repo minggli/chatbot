@@ -51,8 +51,8 @@ def ask(clf=naive_bayes_classifier, engine=engine):
     controller.curr_question = question
     controller.sess['aggregate_texts'].append(question)
 
-    output = clf(query=' '.join(controller.sess[
-                 'aggregate_texts']), engine=engine)
+    output = clf(query=controller.sess[
+                 'aggregate_texts'], engine=engine)
     resp = controller.converse(output)
 
     return make_response(session['sid'] + resp, 200)
