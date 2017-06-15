@@ -8,7 +8,7 @@ import os
 import spacy
 import pickle
 
-from chatbot.settings import DATA_LOC
+from chatbot.settings import DATA_LOCATION
 
 
 class NLPProcessor:
@@ -43,19 +43,19 @@ class NLPProcessor:
             return self._output
 
         elif self._is_list:
-            if not os.path.exists(DATA_LOC + 'processed_data.pkl'):
+            if not os.path.exists(DATA_LOCATION + 'processed_data.pkl'):
                 print('Using NLP language pipeline to process...', end='',
                       flush=True)
                 self._output = [' '.join(
                                 self._pipeline(doc_object=doc).text.split())
                                 for doc in self._content]
                 print('done')
-                with open(DATA_LOC + 'processed_data.pkl', 'wb') as filename:
-                    pickle.dump(self._output, filename)
+                with open(DATA_LOCATION + 'processed_data.pkl', 'wb') as f:
+                    pickle.dump(self._output, f)
                 return self._output
             else:
-                with open(DATA_LOC + 'processed_data.pkl', 'rb') as filename:
-                    self._output = pickle.load(filename)
+                with open(DATA_LOCATION + 'processed_data.pkl', 'rb') as f:
+                    self._output = pickle.load(f)
                     return self._output
 
     def _pipeline(self, doc_object):

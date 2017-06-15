@@ -19,7 +19,7 @@ from requests.adapters import HTTPAdapter
 from multiprocessing import Pool
 
 from .serializers import jsonify_corpus
-from .settings import DATA_LOC, EN_CONTRACTIONS
+from .settings import DATA_LOCATION, EN_CONTRACTIONS
 
 sys.setrecursionlimit(30000)
 # # TODO find a better way to cache BeautifulSoup objects
@@ -31,9 +31,9 @@ def extract_index_pages(base_url):
     index_urls = [base_url + '/Conditions/Pages/BodyMap.aspx?Index={}'.format(
                   i) for i in index]
     bs4_objects = list()
-    if not os.path.exists(DATA_LOC + 'index_pages.pkl'):
+    if not os.path.exists(DATA_LOCATION + 'index_pages.pkl'):
         try:
-            os.mkdir(DATA_LOC)
+            os.mkdir(DATA_LOCATION)
         except FileExistsError:
             pass
         print('constructing {} skeleton of symptom pages...'.format(
@@ -44,10 +44,10 @@ def extract_index_pages(base_url):
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html5lib')
                 bs4_objects.append(soup)
-        with open(DATA_LOC + 'index_pages.pkl', 'wb') as f:
+        with open(DATA_LOCATION + 'index_pages.pkl', 'wb') as f:
             pickle.dump(bs4_objects, f)
     else:
-        with open(DATA_LOC + 'index_pages.pkl', 'rb') as f:
+        with open(DATA_LOCATION + 'index_pages.pkl', 'rb') as f:
             bs4_objects = pickle.load(f)
     return bs4_objects
 
@@ -146,7 +146,7 @@ class TextMiner:
     def extract(self):
         """get all web pages and create soup objects ready for extraction"""
 
-        if not os.path.exists(DATA_LOC + 'symptoms.pkl'):
+        if not os.path.exists(DATA_LOCATION + 'symptoms.pkl'):
 
             self._mp_get()
 
@@ -218,10 +218,10 @@ class TextMiner:
             print('Done. {} of {} failed to be extracted.'.format(
                 len(set(self._failed_urls)), len(self._soups)), flush=True)
 
-            with open(DATA_LOC + 'symptoms.pkl', 'wb') as f:
+            with open(DATA_LOCATION + 'symptoms.pkl', 'wb') as f:
                 pickle.dump(obj=self._output, file=f)
         else:
-            with open(DATA_LOC + 'symptoms.pkl', 'rb') as f:
+            with open(DATA_LOCATION + 'symptoms.pkl', 'rb') as f:
                 self._output = pickle.load(f)
 
         return self

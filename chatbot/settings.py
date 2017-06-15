@@ -4,7 +4,8 @@
     a repository to configure various parts of the app
 """
 
-DATA_LOC = 'chatbot/cache/'
+ENGINE = 'TENSORFLOW'
+DATA_LOCATION = 'chatbot/cache/'
 NHS_BASE_URL = 'http://www.nhs.uk'
 API_BASE_URL = '/chatbot/api/v1'
 
