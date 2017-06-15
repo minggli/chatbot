@@ -1,8 +1,7 @@
-from chatbot import settings as s
+from chatbot import settings
 from chatbot.ie import extracted_urls, TextMiner
-from chatbot.nlp.sparse import NLPProcessor
 
-TEXTMINER, NHS_BASE_URL, NLP = s.TEXTMINER, s.NHS_BASE_URL, s.NLP
+TEXTMINER, NHS_BASE_URL = settings.TEXTMINER, settings.NHS_BASE_URL
 
 urls = extracted_urls(base_url=NHS_BASE_URL)
 web_scraper = TextMiner(urls=urls, attrs=TEXTMINER, display=True)

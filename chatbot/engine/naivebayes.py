@@ -11,7 +11,11 @@ import random
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
-from . import NLPProcessor, TextMiner, NLP, corpus, labels
+from chatbot.nlp.sparse import NLPProcessor
+from chatbot.serializers import feed_conversation
+from chatbot.settings import NLP
+
+from . import TextMiner, corpus, labels
 
 nltk.download('punkt')
 
@@ -62,16 +66,9 @@ def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
     objects = engine.prob_classify(words)
     keys = list(objects.samples())
 
-    options = [tuple((key, objects.prob(key))) for key in keys]
-    options.sort(key=lambda x: x[1], reverse=True)
-    options = options[:limit]
+    samples = [tuple((key, objects.prob(key))) for key in keys]
 
-    if options[0][1] > decision_boundary:
-        return options[0]
-    elif options[0][1] > decision_boundary / 3:
-        return options
-    else:
-        return None
+    return feed_conversation(samples, limit, decision_boundary)
 
 
 nlp = NLPProcessor(attrs=NLP)

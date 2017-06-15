@@ -40,10 +40,10 @@ class _BaseEmbedding(object):
         """
         try:
             assert hasattr(value, '__iter__')
-            assert all(self.is_sentence(doc) for doc in value)
+            assert all(self.is_sentence(sent) for sent in value)
         except AssertionError:
             raise ValueError('corpus must be iterable containing list of'
-                             'sequences')
+                             ' sequences.')
         self._corpus = [[[word.text for word in self(sents)]
                         for sents in document] for document in value]
 
@@ -78,7 +78,7 @@ class Vectorizer(_BaseEmbedding):
         if not self._corpus:
             raise Exception('fit corpus first.')
 
-        zero_replace = np.full(300, 1e-6)
+        zero_replace = np.full(300, 1e-8)
         embeddings = [self(l).vector if self(l).has_vector else zero_replace
                       for l in self._vocab]
         embeddings[1] = np.zeros(300)
