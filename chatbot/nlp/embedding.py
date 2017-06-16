@@ -82,7 +82,7 @@ class Vectorizer(_BaseEmbedding):
         embeddings = [self(l).vector if self(l).has_vector else zero_replace
                       for l in self._vocab]
         embeddings[1] = np.zeros(300)
-        return np.array(embeddings).reshape(-1, 300)
+        return np.array(embeddings, dtype=np.float32).reshape(-1, 300)
 
 
 class WordEmbedding(Vectorizer):
@@ -107,7 +107,8 @@ class WordEmbedding(Vectorizer):
         """pad shorter sequences with 0 (as if out of vocabulary), temporary
         solution until figure out dynamic padding (e.g. train.batch)"""
         if self.zero_pad:
-            sequence.extend(['|PAD|'] * (self.pad_length - len(sequence)))
-            return sequence[:self.pad_length]
+            copy = sequence.copy()
+            copy.extend(['|PAD|'] * (self.pad_length - len(copy)))
+            return copy[:self.pad_length]
         elif not self.zero_pad:
-            return sequence
+            return sequence.copy()
