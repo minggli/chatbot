@@ -11,11 +11,10 @@ import random
 from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
+from chatbot.engine import TextMiner, corpus, labels
 from chatbot.nlp.sparse import NLPProcessor
 from chatbot.serializers import feed_conversation
 from chatbot.settings import NLP
-
-from . import TextMiner, corpus, labels
 
 nltk.download('punkt')
 
@@ -59,7 +58,15 @@ def preprocess(q):
            word_tokenize(nlp.process(TextMiner.split_contraction(q))))
 
 
-def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
+nlp = NLPProcessor(attrs=NLP)
+processed_data = nlp.process(corpus)
+engine = train_model(processed_data, labels, sample_size=0.3)
+
+
+def classify(query,
+             engine=engine,
+             decision_boundary=.85,
+             limit=5):
     """spell out most probable diseases and respective percentages."""
     words = preprocess(' '.join(query))
     print('understanding {}...'.format(words))
@@ -69,8 +76,3 @@ def naive_bayes_classifier(query, engine, decision_boundary=.85, limit=5):
     samples = [tuple((key, objects.prob(key))) for key in keys]
 
     return feed_conversation(samples, limit, decision_boundary)
-
-
-nlp = NLPProcessor(attrs=NLP)
-processed_data = nlp.process(corpus)
-engine = train_model(processed_data, labels, sample_size=0.3)

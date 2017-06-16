@@ -16,14 +16,13 @@ import random
 import tensorflow as tf
 import numpy as np
 
-from tqdm import tqdm
 from functools import wraps
+from tqdm import tqdm
 from sklearn import model_selection, preprocessing
 
+from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
 from chatbot.serializers import feed_conversation
-
-from . import corpus, labels
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -86,20 +85,6 @@ def find_last(outputs, length):
     return last_outputs
 
 
-def timeit(func):
-    """calculate time for a function to complete"""
-    import time
-
-    def wrapper(*args, **kwargs):
-        start = time.time()
-        output = func(*args, **kwargs)
-        end = time.time()
-        print('function {0} took {1:0.3f} s'.format(
-              func.__name__, (end - start) * 1))
-        return output
-    return wrapper
-
-
 def multithreading(func):
     """decorator using tensorflow threading ability."""
     @wraps(func)
@@ -127,7 +112,7 @@ def enqueue(sent_encoded, label_encoded, num_epochs=None, shuffle=True):
     return input_queue
 
 
-def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
+def batch_generator(sent_queue, label_queue, batch_size=None, threads=8):
     return tf.train.shuffle_batch(
                     tensors=[sent_queue, label_queue],
                     batch_size=batch_size,
@@ -137,10 +122,9 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=4):
                     allow_smaller_final_batch=True)
 
 
-@multithreading
-def train(n, is_train, optimiser, metric, loss, verbose):
+def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
-    for global_step in tqdm(range(n), miniters=1, disable=verbose):
+    for global_step in tqdm(range(n), unit='step', disable=verbose):
         _, train_accuracy, train_loss = \
             sess.run([optimiser, metric, loss], feed_dict={is_train: True})
 
@@ -150,13 +134,13 @@ def train(n, is_train, optimiser, metric, loss, verbose):
 
         if global_step and global_step % 100 == 0:
             valid_accuracy, valid_loss = sess.run(fetches=[metric, loss])
+            if verbose:
+                print("step {0} of {3}, valid accuracy: {1:.4f} "
+                      "log loss: {2:.4f}".format(global_step, valid_accuracy,
+                                                 valid_loss, n))
 
-            print("step {0} of {3}, valid accuracy: {1:.4f} "
-                  "log loss: {2:.4f}".format(global_step, valid_accuracy,
-                                             valid_loss, n))
-
-    print("steps {0} of {0}, train accuray: {1:.4f}, valid accuracy {2:.4f} "
-          "log loss: {3:.4f}".format(n, valid_accuracy, train_accuracy,
+    print("step {0} of {0}, train accuray: {1:.4f}, valid accuracy {2:.4f} "
+          "log loss: {3:.4f}".format(n, train_accuracy, valid_accuracy,
                                      train_loss))
 
 
@@ -189,7 +173,9 @@ query = tf.placeholder_with_default(input=valid_sent,
 embeddings = tf.placeholder_with_default(input=embedding_matrix,
                                          shape=[None, embed_shape[1]],
                                          name='embeddings')
-is_train = tf.placeholder_with_default(input=tf.constant(False), shape=[], name='is_train_or_valid')
+is_train = tf.placeholder_with_default(input=False,
+                                       shape=[],
+                                       name='is_train_or_valid')
 
 feature_feed = tf.cond(is_train, lambda: train_sent, lambda: query)
 label_feed = tf.cond(is_train, lambda: train_label, lambda: valid_label)
@@ -219,10 +205,10 @@ outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
 
 last = find_last(outputs, sent_length)
 logits = tf.matmul(last, W_softmax) + b_softmax
-# logits in shape [BATCH_SIZE, N_CLASS]
+
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=label_feed)
-# softmax cross entropy in shape [BATCH_SIZE, ]
+
 # TODO mask padded loss to accelerate training
 loss = tf.reduce_mean(cross_entropy)
 train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
@@ -238,22 +224,30 @@ sess.run(init)
 sess.graph.finalize()
 
 with sess.as_default(), tf.device('/cpu:0'):
-    train(5000, is_train, train_step, accuracy, loss, True)
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(coord=coord)
+    train(500, sess, is_train, train_step, accuracy, loss, False)
 
 
-def inference(question, sess, encoder=corpus_encoder, classes=classes,
-              query=query, embeddings=embeddings, limit=5, decision_boundary=.85):
+def inference(question,
+              sess=sess,
+              encoder=corpus_encoder,
+              classes=classes,
+              query=query,
+              embeddings=embeddings,
+              limit=5,
+              decision_boundary=.85):
     """produce probabilities of most probable topic"""
 
     encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
     embedded_query = encoder.vectorize()
-    probabilities = sess.run(fetches=probs,
-                             feed_dict={query: encoded_query,
-                                        embeddings: embedded_query})
 
-    class_prob = np.mean(probabilities, axis=0).tolist()
+    class_prob = sess.run(fetches=probs,
+                          feed_dict={query: encoded_query,
+                                     embeddings: embedded_query})[-1].tolist()
+
     samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
 
     return feed_conversation(samples, limit, decision_boundary)
