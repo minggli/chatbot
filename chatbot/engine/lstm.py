@@ -144,9 +144,6 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-corpus = corpus[100:150]
-labels = labels[100:150]
-
 L2_NORM = False
 STATE_SIZE = 96
 STEP_SIZE = 80
@@ -191,8 +188,8 @@ b_softmax = tf.get_variable(name='b',
                             shape=[N_CLASS],
                             initializer=tf.constant_initializer(0.0))
 
-cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
-cell = tf.contrib.rnn.DropoutWrapper(cell=cell,
+cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
+cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                      input_keep_prob=keep_prob,
                                      output_keep_prob=keep_prob,
                                      state_keep_prob=keep_prob)
