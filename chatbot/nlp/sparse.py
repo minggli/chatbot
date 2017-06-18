@@ -4,11 +4,10 @@
     NLP processor
 """
 
-import os
 import spacy
 import pickle
 
-from chatbot.settings import DATA_LOCATION
+from chatbot.settings import CacheSettings
 
 
 class NLPProcessor:
@@ -43,18 +42,18 @@ class NLPProcessor:
             return self._output
 
         elif self._is_list:
-            if not os.path.exists(DATA_LOCATION + 'processed_data.pkl'):
+            if not CacheSettings.check(CacheSettings.processed_data):
                 print('Using NLP language pipeline to process...', end='',
                       flush=True)
                 self._output = [' '.join(
                                 self._pipeline(doc_object=doc).text.split())
                                 for doc in self._content]
                 print('done')
-                with open(DATA_LOCATION + 'processed_data.pkl', 'wb') as f:
+                with open(CacheSettings.processed_data, 'wb') as f:
                     pickle.dump(self._output, f)
                 return self._output
             else:
-                with open(DATA_LOCATION + 'processed_data.pkl', 'rb') as f:
+                with open(CacheSettings.processed_data, 'rb') as f:
                     self._output = pickle.load(f)
                     return self._output
 

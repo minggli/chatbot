@@ -10,7 +10,7 @@ from uuid import uuid4
 from chatbot.engine import leaflets
 from chatbot.services import engine
 from chatbot.conversation import Conversation
-from chatbot.settings import APP_CONFIG, API_BASE_URL
+from chatbot.settings import APP_CONFIG, BASE_URL, PORT_ASK
 
 app = Flask(__name__)
 app.config.update(APP_CONFIG)
@@ -38,7 +38,7 @@ def initiate_controller():
     g.controller = Conversation(leaflets, 3)
 
 
-@app.route(API_BASE_URL + '/ask', methods=['POST'])
+@app.route(BASE_URL + '/ask', methods=['POST'])
 def ask(engine=engine):
 
     question = request.json.get('question', None)
@@ -58,4 +58,4 @@ def ask(engine=engine):
 
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=PORT_ASK)

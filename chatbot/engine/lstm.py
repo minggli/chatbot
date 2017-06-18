@@ -16,15 +16,14 @@ import random
 import tensorflow as tf
 import numpy as np
 
-from functools import wraps
 from tqdm import tqdm
+from datetime import datetime
 from sklearn import model_selection, preprocessing
 
 from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
 from chatbot.serializers import feed_conversation
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+from chatbot.settings import CacheSettings, FORCE
 
 
 def resample(docs, labels, sample_size):
@@ -85,22 +84,6 @@ def find_last(outputs, length):
     return last_outputs
 
 
-def multithreading(func):
-    """decorator using tensorflow threading ability."""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord)
-        func_output = func(*args, **kwargs)
-        try:
-            coord.request_stop()
-            coord.join(threads, stop_grace_period_secs=5)
-        except (tf.errors.CancelledError, RuntimeError) as e:
-            pass
-        return func_output
-    return wrapper
-
-
 def enqueue(sent_encoded, label_encoded, num_epochs=None, shuffle=True):
     """returns an Ops Tensor with queued sentence and label pair"""
     sent = tf.convert_to_tensor(sent_encoded, dtype=tf.int32)
@@ -120,6 +103,23 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=8):
                     capacity=1e3,
                     min_after_dequeue=batch_size,
                     allow_smaller_final_batch=True)
+
+
+def restore_session(sess, path):
+    """restore hard trained model for predicting."""
+    eval_saver = \
+        tf.train.import_meta_graph(tf.train.latest_checkpoint(path) + '.meta')
+    eval_saver.restore(sess, tf.train.latest_checkpoint(path))
+    print('{} restored successfully.'.format(tf.train.latest_checkpoint(path)))
+
+
+def save_session(sess, path, sav):
+    """save hard trained model for future predicting."""
+    now = datetime.now().strftime('%Y%m%d%H%M%S')
+    if not os.path.exists(path):
+        os.makedirs(path)
+    save_path = sav.save(sess, path + "model_{0}.ckpt".format(now))
+    print("Model saved in: {0}".format(save_path))
 
 
 def train(n, sess, is_train, optimiser, metric, loss, verbose):
@@ -144,17 +144,17 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-N_DOC = 20
-corpus = corpus[:N_DOC]
-labels = labels[:N_DOC]
+corpus = corpus[100:150]
+labels = labels[100:150]
 
-STATE_SIZE = 24
-STEP_SIZE = 30
+L2_NORM = False
+STATE_SIZE = 96
+STEP_SIZE = 80
 N_CLASS = len(labels)
 BATCH_SIZE = 50
-EPOCH = 200
+MAX_WORDS = None
 
-corpus_encoder = WordEmbedding(top=None).fit(corpus)
+corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
 
 l_encoder = preprocessing.LabelBinarizer().fit(labels)
@@ -183,31 +183,38 @@ keep_prob = tf.cond(is_train, lambda: tf.constant(.5), lambda: tf.constant(1.))
 
 rnn_inputs = tf.nn.embedding_lookup(embeddings, feature_feed)
 
-with tf.variable_scope('softmax'):
-    W_softmax = tf.get_variable(
-                    name='W',
-                    shape=[STATE_SIZE, N_CLASS],
-                    initializer=tf.truncated_normal_initializer(stddev=0.1))
-    b_softmax = tf.get_variable(
-                    name='b',
-                    shape=[N_CLASS],
-                    initializer=tf.constant_initializer(0.0))
+W_softmax = tf.get_variable(name='W',
+                            shape=[STATE_SIZE, N_CLASS],
+                            initializer=tf.truncated_normal_initializer(
+                                        stddev=0.1))
+b_softmax = tf.get_variable(name='b',
+                            shape=[N_CLASS],
+                            initializer=tf.constant_initializer(0.0))
 
 cell = tf.contrib.rnn.BasicLSTMCell(STATE_SIZE)
 cell = tf.contrib.rnn.DropoutWrapper(cell=cell,
                                      input_keep_prob=keep_prob,
-                                     output_keep_prob=keep_prob)
+                                     output_keep_prob=keep_prob,
+                                     state_keep_prob=keep_prob)
 sent_length = size(rnn_inputs)
 outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                          inputs=rnn_inputs,
                                          sequence_length=sent_length,
                                          dtype=tf.float32)
 
+
 last = find_last(outputs, sent_length)
 logits = tf.matmul(last, W_softmax) + b_softmax
 
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=label_feed)
+
+if L2_NORM:
+    # add L2 regularization on weights from readout layer and dense layers
+    weights2norm = [var for var in tf.trainable_variables()
+                    if var.name.startswith(('softmax', 'rnn'))]
+    regularizers = tf.add_n([tf.nn.l2_loss(var) for var in weights2norm])
+    cross_entropy += 1e-2 * regularizers
 
 # TODO mask padded loss to accelerate training
 loss = tf.reduce_mean(cross_entropy)
@@ -217,16 +224,27 @@ probs = tf.nn.softmax(logits)
 correct = tf.equal(tf.argmax(probs, 1), tf.argmax(label_feed, 1))
 accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
+saver = tf.train.Saver(max_to_keep=5, var_list=tf.global_variables())
+
 init = tf.global_variables_initializer()
 
 sess = tf.Session()
 sess.run(init)
-sess.graph.finalize()
 
 with sess.as_default(), tf.device('/cpu:0'):
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(coord=coord)
-    train(500, sess, is_train, train_step, accuracy, loss, False)
+    try:
+        if FORCE:
+            raise TypeError
+        restore_session(sess, path=CacheSettings.path)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
+
+    except TypeError:
+        sess.graph.finalize()
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
+        train(10000, sess, is_train, train_step, accuracy, loss, True)
+        save_session(sess, path=CacheSettings.path, sav=saver)
 
 
 def inference(question,

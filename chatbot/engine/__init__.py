@@ -1,10 +1,8 @@
-from chatbot import settings
 from chatbot.ie import extracted_urls, TextMiner
+from chatbot.settings import WEB_METAKEY, WEB_BASE_URL
 
-TEXTMINER, NHS_BASE_URL = settings.TEXTMINER, settings.NHS_BASE_URL
-
-urls = extracted_urls(base_url=NHS_BASE_URL)
-web_scraper = TextMiner(urls=urls, attrs=TEXTMINER, display=True)
+urls = extracted_urls(base_url=WEB_BASE_URL)
+web_scraper = TextMiner(urls=urls, attrs=WEB_METAKEY, display=True)
 
 raw_data = web_scraper.extract().jsonify()
 corpus = [json['doc'] for json in raw_data]

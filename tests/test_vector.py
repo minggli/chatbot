@@ -4,10 +4,10 @@ from chatbot.ie import extracted_urls, TextMiner
 from chatbot.nlp.embedding import WordVectorizer
 
 
-TEXTMINER, NHS_BASE_URL = s.TEXTMINER, s.NHS_BASE_URL
+WEB_METAKEY, BASE_URL = s.WEB_METAKEY, s.BASE_URL
 
-urls = extracted_urls(base_url=NHS_BASE_URL)
-web_scraper = TextMiner(urls=urls, attrs=TEXTMINER, display=True)
+urls = extracted_urls(base_url=BASE_URL)
+web_scraper = TextMiner(urls=urls, attrs=WEB_METAKEY, display=True)
 
 raw_data = web_scraper.extract().jsonify()
 corpus = [json['doc'] for json in raw_data]

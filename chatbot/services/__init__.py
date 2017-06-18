@@ -1,8 +1,6 @@
-from chatbot import settings
+from chatbot.settings import ENGINE
 
-if settings.ENGINE.upper() == 'TENSORFLOW':
-    from chatbot.engine.lstm import inference
-    engine = inference
-elif settings.ENGINE.upper() == 'NLTK':
-    from chatbot.engine.naivebayes import classify
-    engine = classify
+if ENGINE.upper() == 'TENSORFLOW':
+    from chatbot.engine.lstm import inference as engine
+elif ENGINE.upper() == 'NLTK':
+    from chatbot.engine.naivebayes import classify as engine
