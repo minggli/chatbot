@@ -112,3 +112,9 @@ class WordEmbedding(Vectorizer):
             return copy[:self.pad_length]
         elif not self.zero_pad:
             return sequence.copy()
+
+    def summary_statistics(self):
+        print(self._vocab)
+        print(len(self._vocab))
+        print(self._max_length)
+        print(self.pad_length)
