@@ -32,7 +32,11 @@ class NLPProcessor:
             self._doc_object = self._nlp(content)
         elif isinstance(content, list):
             self._is_list = True
-            self._content = [self._nlp(' '.join(doc)) for doc in content]
+            if not CacheSettings.check(CacheSettings.processed_data):
+                print('using NLP language pipeline to process...', end='',
+                      flush=True)
+                self._content = [[self._nlp(' '.join(sent.split()))
+                                  for sent in doc] for doc in content]
         else:
             raise TypeError('require string or dictionary.')
 
@@ -43,16 +47,16 @@ class NLPProcessor:
 
         elif self._is_list:
             if not CacheSettings.check(CacheSettings.processed_data):
-                print('Using NLP language pipeline to process...', end='',
-                      flush=True)
-                self._output = [' '.join(
-                                self._pipeline(doc_object=doc).text.split())
+
+                self._output = [[self._pipeline(sent).text for sent in doc]
                                 for doc in self._content]
                 print('done')
                 with open(CacheSettings.processed_data, 'wb') as f:
                     pickle.dump(self._output, f)
                 return self._output
             else:
+                print('fetching cached NLP processed data...', end='\n',
+                      flush=True)
                 with open(CacheSettings.processed_data, 'rb') as f:
                     self._output = pickle.load(f)
                     return self._output
