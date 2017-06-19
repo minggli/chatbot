@@ -17,8 +17,8 @@ Within virtualenv venv (`source venv/bin/activate`), you can launch separate ser
 
 For the first time running either service, it will take longer than usual as it needs to download, process and cache web data. Afterwards, it takes around 5 minutes to launch `ask` and instantly for `symptoms`.
 
-`export ENGINE=NLTK` to use traditional Bag of Words model using NLTK;
-`export ENGINE=TENSORFLOW` to use representational sequence classification using Tensorflow.
+`export ENGINE=NLTK` to use NLTK backend for traditional Bag of Words model with Naive Bayes
+`export ENGINE=TENSORFLOW` to use Tensorflow backend for representational sequence classification with Long-short Term Memroy (LSTM)
 
 ## API endpoints
 Following endpoints are available to consume:
@@ -34,8 +34,8 @@ It accepts payload as simple as `{"questions": "your questions or description of
 To list all leaflets or leaflet for the chosen symptom.
 
 ## Further development ideas
-Using word vector rather than sparse matrix to extract semantic proximity in embedded space;
+---Using word vector rather than sparse matrix to extract semantic proximity in embedded space;---
 
 Explore Recurrent Neural Network (e.g. LSTM) to move from retrieval-based model to generative;
 
-Explore supervised Latent Dirichlet Allocation, ConvNet as text classification alternative to Naive Bayes.
+---Explore supervised Latent Dirichlet Allocation, RNN as text classification alternative to Naive Bayes.---
