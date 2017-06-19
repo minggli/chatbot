@@ -135,10 +135,9 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
         if global_step and global_step % 100 == 0:
             valid_accuracy, valid_loss = sess.run(fetches=[metric, loss])
-            if verbose:
-                print("step {0} of {3}, valid accuracy: {1:.4f} "
-                      "log loss: {2:.4f}".format(global_step, valid_accuracy,
-                                                 valid_loss, n))
+            print("step {0} of {3}, valid accuracy: {1:.4f} "
+                  "log loss: {2:.4f}".format(global_step, valid_accuracy,
+                                             valid_loss, n))
 
     print("step {0} of {0}, train accuray: {1:.4f}, valid accuracy {2:.4f} "
           "log loss: {3:.4f}".format(n, train_accuracy, valid_accuracy,
@@ -170,7 +169,7 @@ is_train = tf.placeholder_with_default(input=False,
 
 feature_feed = tf.cond(is_train, lambda: train_sent, lambda: query)
 label_feed = tf.cond(is_train, lambda: train_label, lambda: valid_label)
-keep_prob = tf.cond(is_train, lambda: tf.constant(.5), lambda: tf.constant(1.))
+keep_prob = tf.cond(is_train, lambda: tf.constant(.8), lambda: tf.constant(1.))
 
 W_softmax = tf.get_variable(name='W',
                             shape=[STATE_SIZE, len(labels)],
