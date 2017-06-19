@@ -27,7 +27,7 @@ BASE_URL = config['API']['BASE_URL']
 PORT_ASK = config['API']['PORT_ASK']
 PORT_SYMPTOMS = config['API']['PORT_SYMPTOMS']
 
-MAX_WORDS = config['ENGINE']['MAX_WORDS']
+MAX_WORDS = config['ENGINE']['MAX_WORDS'] or None
 BATCH_SIZE = config['ENGINE']['BATCH_SIZE']
 STATE_SIZE = config['ENGINE']['STATE_SIZE']
 STEP_SIZE = config['ENGINE']['STEP_SIZE']
