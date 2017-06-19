@@ -10,7 +10,7 @@ build
 *.egg-info
 _mailinglist
 .tox
-.cache/
+cache/
 .idea/
 venv/
 

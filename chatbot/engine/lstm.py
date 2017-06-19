@@ -22,6 +22,7 @@ from sklearn import model_selection, preprocessing
 
 from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
+from chatbot.models.cnn import ConvolutionalNeuralNetwork
 from chatbot.serializers import feed_conversation
 from chatbot.settings import CacheSettings, FORCE
 
@@ -145,7 +146,7 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
 
 L2_NORM = False
-STATE_SIZE = 96
+STATE_SIZE = 24
 STEP_SIZE = 80
 N_CLASS = len(labels)
 BATCH_SIZE = 50
@@ -160,7 +161,7 @@ encoded_labels, classes = l_encoder.transform(labels), l_encoder.classes_
 embedding_matrix = corpus_encoder.vectorize()
 embed_shape = embedding_matrix.shape
 
-data = flatten_split_resample(encoded_corpus, encoded_labels)
+data = flatten_split_resample(encoded_corpus, encoded_labels, valid_ratio=.2)
 train_sent, train_label = batch_generator(*enqueue(*data[0]), BATCH_SIZE)
 valid_sent, valid_label = batch_generator(*enqueue(*data[1]), BATCH_SIZE)
 
@@ -168,7 +169,7 @@ query = tf.placeholder_with_default(input=valid_sent,
                                     shape=[None, STEP_SIZE],
                                     name='query')
 embeddings = tf.placeholder_with_default(input=embedding_matrix,
-                                         shape=[None, embed_shape[1]],
+                                         shape=[None, embed_shape[-1]],
                                          name='embeddings')
 is_train = tf.placeholder_with_default(input=False,
                                        shape=[],
@@ -176,9 +177,7 @@ is_train = tf.placeholder_with_default(input=False,
 
 feature_feed = tf.cond(is_train, lambda: train_sent, lambda: query)
 label_feed = tf.cond(is_train, lambda: train_label, lambda: valid_label)
-keep_prob = tf.cond(is_train, lambda: tf.constant(.5), lambda: tf.constant(1.))
-
-rnn_inputs = tf.nn.embedding_lookup(embeddings, feature_feed)
+keep_prob = tf.cond(is_train, lambda: tf.constant(1.), lambda: tf.constant(1.))
 
 W_softmax = tf.get_variable(name='W',
                             shape=[STATE_SIZE, N_CLASS],
@@ -188,6 +187,15 @@ b_softmax = tf.get_variable(name='b',
                             shape=[N_CLASS],
                             initializer=tf.constant_initializer(0.0))
 
+word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
+
+word_vectors = tf.reshape(word_vectors,
+                          shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1], 1])
+cnn = ConvolutionalNeuralNetwork([STEP_SIZE, embed_shape[-1], 1], None)
+rnn_inputs = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 1], [1]], bn=False)
+
+rnn_inputs = tf.reshape(rnn_inputs,
+                        shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1]])
 cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
 cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                      input_keep_prob=keep_prob,
@@ -199,19 +207,11 @@ outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                          sequence_length=sent_length,
                                          dtype=tf.float32)
 
-
 last = find_last(outputs, sent_length)
 logits = tf.matmul(last, W_softmax) + b_softmax
 
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=label_feed)
-
-if L2_NORM:
-    # add L2 regularization on weights from readout layer and dense layers
-    weights2norm = [var for var in tf.trainable_variables()
-                    if var.name.startswith(('softmax', 'rnn'))]
-    regularizers = tf.add_n([tf.nn.l2_loss(var) for var in weights2norm])
-    cross_entropy += 1e-2 * regularizers
 
 # TODO mask padded loss to accelerate training
 loss = tf.reduce_mean(cross_entropy)
@@ -251,7 +251,7 @@ def inference(question,
               query=query,
               embeddings=embeddings,
               limit=5,
-              decision_boundary=.85):
+              decision_boundary=.30):
     """produce probabilities of most probable topic"""
 
     encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
