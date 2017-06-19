@@ -176,7 +176,7 @@ is_train = tf.placeholder_with_default(input=False,
 
 feature_feed = tf.cond(is_train, lambda: train_sent, lambda: query)
 label_feed = tf.cond(is_train, lambda: train_label, lambda: valid_label)
-keep_prob = tf.cond(is_train, lambda: tf.constant(1.), lambda: tf.constant(1.))
+keep_prob = tf.cond(is_train, lambda: tf.constant(.5), lambda: tf.constant(1.))
 
 W_softmax = tf.get_variable(name='W',
                             shape=[STATE_SIZE, N_CLASS],
@@ -207,7 +207,6 @@ with tf.device('/gpu:0'):
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                             labels=label_feed)
 
-    # TODO mask padded loss to accelerate training
     loss = tf.reduce_mean(cross_entropy)
     train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
 
@@ -219,7 +218,7 @@ with tf.device('/gpu:0'):
 
     init = tf.global_variables_initializer()
 
-    sess = tf.Session()
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
     sess.run(init)
 
 with sess.as_default(), tf.device('/cpu:0'):
