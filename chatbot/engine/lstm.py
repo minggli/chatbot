@@ -126,9 +126,9 @@ def save_session(sess, path, sav):
 def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
     for global_step in tqdm(range(n), unit='step', disable=verbose):
-        _, train_accuracy, train_loss = \
-            sess.run([optimiser, metric, loss], feed_dict={is_train: True})
-
+        _, train_accuracy, train_loss, sl = \
+            sess.run([optimiser, metric, loss, sent_length], feed_dict={is_train: True})
+        print(sl)
         if verbose:
             print("step {0} of {3}, train accuracy: {1:.4f} log loss: {2:.4f}"
                   .format(global_step, train_accuracy, train_loss, n))
@@ -188,22 +188,22 @@ b_softmax = tf.get_variable(name='b',
                             initializer=tf.constant_initializer(0.0))
 
 word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
-
-word_vectors = tf.reshape(word_vectors,
-                          shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1], 1])
-cnn = ConvolutionalNeuralNetwork([STEP_SIZE, embed_shape[-1], 1], None)
-rnn_inputs = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 1], [1]], bn=False)
-
-rnn_inputs = tf.reshape(rnn_inputs,
-                        shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1]])
+#
+# word_vectors = tf.reshape(word_vectors,
+#                           shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1], 1])
+# cnn = ConvolutionalNeuralNetwork([STEP_SIZE, embed_shape[-1], 1], None)
+# rnn_inputs = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 1], [1]], bn=False)
+#
+# rnn_inputs = tf.reshape(rnn_inputs,
+#                         shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1]])
 cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
 cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                      input_keep_prob=keep_prob,
                                      output_keep_prob=keep_prob,
                                      state_keep_prob=keep_prob)
-sent_length = size(rnn_inputs)
+sent_length = size(word_vectors)
 outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
-                                         inputs=rnn_inputs,
+                                         inputs=word_vectors,
                                          sequence_length=sent_length,
                                          dtype=tf.float32)
 
