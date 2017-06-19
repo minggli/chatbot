@@ -188,37 +188,39 @@ b_softmax = tf.get_variable(name='b',
 
 word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 
-cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
-cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                     input_keep_prob=keep_prob,
-                                     output_keep_prob=keep_prob,
-                                     state_keep_prob=keep_prob)
-sent_length = size(word_vectors)
-outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
-                                         inputs=word_vectors,
-                                         sequence_length=sent_length,
-                                         dtype=tf.float32)
+with tf.device('/gpu:0'):
 
-last = find_last(outputs, sent_length)
-logits = tf.matmul(last, W_softmax) + b_softmax
+    cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
+    cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
+                                         input_keep_prob=keep_prob,
+                                         output_keep_prob=keep_prob,
+                                         state_keep_prob=keep_prob)
+    sent_length = size(word_vectors)
+    outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
+                                             inputs=word_vectors,
+                                             sequence_length=sent_length,
+                                             dtype=tf.float32)
 
-cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
-                                                        labels=label_feed)
+    last = find_last(outputs, sent_length)
+    logits = tf.matmul(last, W_softmax) + b_softmax
 
-# TODO mask padded loss to accelerate training
-loss = tf.reduce_mean(cross_entropy)
-train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
+    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
+                                                            labels=label_feed)
 
-probs = tf.nn.softmax(logits)
-correct = tf.equal(tf.argmax(probs, 1), tf.argmax(label_feed, 1))
-accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
+    # TODO mask padded loss to accelerate training
+    loss = tf.reduce_mean(cross_entropy)
+    train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
 
-saver = tf.train.Saver(max_to_keep=5, var_list=tf.global_variables())
+    probs = tf.nn.softmax(logits)
+    correct = tf.equal(tf.argmax(probs, 1), tf.argmax(label_feed, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
-init = tf.global_variables_initializer()
+    saver = tf.train.Saver(max_to_keep=5, var_list=tf.global_variables())
 
-sess = tf.Session()
-sess.run(init)
+    init = tf.global_variables_initializer()
+
+    sess = tf.Session()
+    sess.run(init)
 
 with sess.as_default(), tf.device('/cpu:0'):
     try:
@@ -232,7 +234,7 @@ with sess.as_default(), tf.device('/cpu:0'):
         sess.graph.finalize()
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
-        train(10000, sess, is_train, train_step, accuracy, loss, True)
+        train(10000, sess, is_train, train_step, accuracy, loss, False)
         save_session(sess, path=CacheSettings.path, sav=saver)
 
 
