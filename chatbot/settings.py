@@ -27,7 +27,8 @@ BASE_URL = config['API']['BASE_URL']
 PORT_ASK = config['API']['PORT_ASK']
 PORT_SYMPTOMS = config['API']['PORT_SYMPTOMS']
 
-MAX_WORDS = config['ENGINE']['MAX_WORDS'] or None
+MAX_WORDS = int(config['ENGINE']['MAX_WORDS']) \
+            if config['ENGINE']['MAX_WORDS'] else None
 BATCH_SIZE = config.getint('ENGINE', 'BATCH_SIZE')
 STATE_SIZE = config.getint('ENGINE', 'STATE_SIZE')
 STEP_SIZE = config.getint('ENGINE', 'STEP_SIZE')
