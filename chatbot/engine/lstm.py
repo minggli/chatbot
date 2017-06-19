@@ -22,7 +22,6 @@ from sklearn import model_selection, preprocessing
 
 from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
-from chatbot.models.cnn import ConvolutionalNeuralNetwork
 from chatbot.serializers import feed_conversation
 from chatbot.settings import CacheSettings, FORCE
 
@@ -188,14 +187,7 @@ b_softmax = tf.get_variable(name='b',
                             initializer=tf.constant_initializer(0.0))
 
 word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
-#
-# word_vectors = tf.reshape(word_vectors,
-#                           shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1], 1])
-# cnn = ConvolutionalNeuralNetwork([STEP_SIZE, embed_shape[-1], 1], None)
-# rnn_inputs = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 1], [1]], bn=False)
-#
-# rnn_inputs = tf.reshape(rnn_inputs,
-#                         shape=[BATCH_SIZE, STEP_SIZE, embed_shape[-1]])
+
 cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
 cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                      input_keep_prob=keep_prob,
