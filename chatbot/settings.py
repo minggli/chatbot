@@ -18,13 +18,20 @@ config.read(CONFIGFILE)
 
 ENGINE = os.getenv('ENGINE', default=config['GENERAL']['ENGINE'])
 FORCE = os.getenv('FORCE', default=config.getboolean('GENERAL', 'FORCE'))
+VERBOSE = os.getenv('VERBOSE', default=config.getboolean('ENGINE', 'VERBOSE'))
+
+WEB_BASE_URL = config['WEBDATA']['BASE_URL']
+WEB_METAKEY = json.loads(config['WEBDATA']['META'])
 
 BASE_URL = config['API']['BASE_URL']
 PORT_ASK = config['API']['PORT_ASK']
 PORT_SYMPTOMS = config['API']['PORT_SYMPTOMS']
 
-WEB_BASE_URL = config['WEBDATA']['BASE_URL']
-WEB_METAKEY = json.loads(config['WEBDATA']['META'])
+MAX_WORDS = config['ENGINE']['MAX_WORDS']
+BATCH_SIZE = config['ENGINE']['BATCH_SIZE']
+STATE_SIZE = config['ENGINE']['STATE_SIZE']
+STEP_SIZE = config['ENGINE']['STEP_SIZE']
+MAX_STEPS = config['ENGINE']['MAX_STEPS']
 
 NLP = json.loads(config['NLP']['PROCESS'])
 NLP_CONTRACTIONS = json.loads(config['NLP']['CONTRACTIONS'])
@@ -61,6 +68,13 @@ def build_config(filename):
     config['API']['BASE_URL'] = '/chatbot/api/v1'
     config['API']['PORT_ASK'] = '5000'
     config['API']['PORT_SYMPTOMS'] = '5001'
+    config['ENGINE'] = dict()
+    config['ENGINE']['MAX_WORDS'] = ''
+    config['ENGINE']['BATCH_SIZE'] = '50'
+    config['ENGINE']['STATE_SIZE'] = '24'
+    config['ENGINE']['STEP_SIZE'] = '80'
+    config['ENGINE']['MAX_STEPS'] = '10000'
+    config['ENGINE']['VERBOSE'] = 'false'
     config['WEBDATA'] = dict()
     config['WEBDATA']['BASE_URL'] = 'http://www.nhs.uk'
     config['WEBDATA']['META'] = """

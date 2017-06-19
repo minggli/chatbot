@@ -22,7 +22,8 @@ from sklearn import model_selection, preprocessing
 from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
 from chatbot.serializers import feed_conversation
-from chatbot.settings import CacheSettings, FORCE
+from chatbot.settings import (CacheSettings, FORCE, STATE_SIZE, STEP_SIZE,
+                              BATCH_SIZE, MAX_WORDS, MAX_STEPS, VERBOSE)
 
 
 def resample(docs, labels, sample_size):
@@ -144,13 +145,6 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-L2_NORM = False
-STATE_SIZE = 24
-STEP_SIZE = 80
-N_CLASS = len(labels)
-BATCH_SIZE = 50
-MAX_WORDS = None
-
 corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
 
@@ -179,11 +173,11 @@ label_feed = tf.cond(is_train, lambda: train_label, lambda: valid_label)
 keep_prob = tf.cond(is_train, lambda: tf.constant(.5), lambda: tf.constant(1.))
 
 W_softmax = tf.get_variable(name='W',
-                            shape=[STATE_SIZE, N_CLASS],
+                            shape=[STATE_SIZE, len(labels)],
                             initializer=tf.truncated_normal_initializer(
                                         stddev=0.1))
 b_softmax = tf.get_variable(name='b',
-                            shape=[N_CLASS],
+                            shape=[len(labels)],
                             initializer=tf.constant_initializer(0.0))
 
 word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
@@ -233,7 +227,7 @@ with sess.as_default(), tf.device('/cpu:0'):
         sess.graph.finalize()
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
-        train(10000, sess, is_train, train_step, accuracy, loss, False)
+        train(MAX_STEPS, sess, is_train, train_step, accuracy, loss, VERBOSE)
         save_session(sess, path=CacheSettings.path, sav=saver)
 
 
@@ -244,7 +238,7 @@ def inference(question,
               query=query,
               embeddings=embeddings,
               limit=5,
-              decision_boundary=.30):
+              decision_boundary=.85):
     """produce probabilities of most probable topic"""
 
     encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
