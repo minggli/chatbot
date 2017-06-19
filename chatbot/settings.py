@@ -28,10 +28,10 @@ PORT_ASK = config['API']['PORT_ASK']
 PORT_SYMPTOMS = config['API']['PORT_SYMPTOMS']
 
 MAX_WORDS = config['ENGINE']['MAX_WORDS'] or None
-BATCH_SIZE = config['ENGINE']['BATCH_SIZE']
-STATE_SIZE = config['ENGINE']['STATE_SIZE']
-STEP_SIZE = config['ENGINE']['STEP_SIZE']
-MAX_STEPS = config['ENGINE']['MAX_STEPS']
+BATCH_SIZE = config.getint('ENGINE', 'BATCH_SIZE')
+STATE_SIZE = config.getint('ENGINE', 'STATE_SIZE')
+STEP_SIZE = config.getint('ENGINE', 'STEP_SIZE')
+MAX_STEPS = config.getint('ENGINE', 'MAX_STEPS')
 
 NLP = json.loads(config['NLP']['PROCESS'])
 NLP_CONTRACTIONS = json.loads(config['NLP']['CONTRACTIONS'])
