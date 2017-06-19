@@ -11,10 +11,9 @@
     Mikolov et al. 2013
 """
 import os
-import random
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 from tqdm import tqdm
 from datetime import datetime
@@ -31,7 +30,8 @@ def resample(docs, labels, sample_size):
     indice_array = list()
     for label in unique_labels:
         indice_label = np.where(labels == label)[0].tolist()
-        indice_array.extend(random.choices(indice_label, k=sample_size))
+        indice_array.extend(
+            np.random.choice(indice_label, size=sample_size).tolist())
     return (docs[indice_array], labels[indice_array])
 
 
