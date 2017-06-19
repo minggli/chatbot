@@ -125,9 +125,9 @@ def save_session(sess, path, sav):
 def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
     for global_step in tqdm(range(n), unit='step', disable=verbose):
-        _, train_accuracy, train_loss, sl = \
-            sess.run([optimiser, metric, loss, sent_length], feed_dict={is_train: True})
-        print(sl)
+        _, train_accuracy, train_loss = \
+            sess.run([optimiser, metric, loss], feed_dict={is_train: True})
+
         if verbose:
             print("step {0} of {3}, train accuracy: {1:.4f} log loss: {2:.4f}"
                   .format(global_step, train_accuracy, train_loss, n))
