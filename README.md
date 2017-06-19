@@ -1,7 +1,7 @@
 # chatbot
 a naive chatbot that sometimes misdiagnoses.
 
-This retrieval-based prototype bot uses publicly available health information and a set of NLP techniques to generate indicative diagnosis and NHS leaflet for that diagnosis. The result is not to be treated as medical advice.
+This retrieval-based prototype bot uses publicly available health information to generate indicative diagnosis and link to NHS leaflet. The result is not diagnosis and non-clinical use only.
 
 ![alt text](screenshots/example_cold.png "example common cold")
 
@@ -16,6 +16,9 @@ Within virtualenv venv (`source venv/bin/activate`), you can launch separate ser
 `python3 -m chatbot.services.symptoms`
 
 For the first time running either service, it will take longer than usual as it needs to download, process and cache web data. Afterwards, it takes around 5 minutes to launch `ask` and instantly for `symptoms`.
+
+`export ENGINE=NLTK` to use traditional Bag of Words model using NLTK;
+`export ENGINE=TENSORFLOW` to use representational sequence classification using Tensorflow.
 
 ## API endpoints
 Following endpoints are available to consume:
