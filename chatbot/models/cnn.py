@@ -16,8 +16,8 @@ class ConvolutionalNeuralNetwork:
         self._shape = shape
         self._n_class = num_classes
 
-        self.is_train = self._is_train
-        self.keep_prob = self._keep_prob
+        self.is_train = None
+        self.keep_prob = None
 
     @staticmethod
     def _weight_variable(shape):

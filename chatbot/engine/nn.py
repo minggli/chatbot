@@ -189,6 +189,8 @@ with tf.device('/gpu:0'):
 
     cnn = ConvolutionalNeuralNetwork(shape=[STEP_SIZE, 300, 1],
                                      num_classes=len(labels))
+    cnn.is_train = is_train
+    cnn.keep_prob = keep_prob
     word_vectors = tf.reshape(word_vectors, [BATCH_SIZE] + cnn._shape)
     conv_layer_1 = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 3], [3]])
     conv_layer_2 = cnn.add_conv_layer(conv_layer_1, [[3, 3, 3, 6], [6]])
