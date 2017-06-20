@@ -55,11 +55,12 @@ class NLPProcessor:
                     pickle.dump(self._output, f)
                 return self._output
             else:
-                print('fetching cached NLP processed data...', end='\n',
+                print('fetching cached NLP processed data...', end='',
                       flush=True)
                 with open(CacheSettings.processed_data, 'rb') as f:
                     self._output = pickle.load(f)
-                    return self._output
+                print('done')
+                return self._output
 
     def _pipeline(self, doc_object):
         return self.__lemmatize__(self.__stop_word__(self.__part_of_speech__(

@@ -145,11 +145,15 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-# corpus = NLPProcessor(attrs=NLP).process(corpus)
+slicing = slice(250, 300)
+corpus = corpus[slicing]
+labels = labels[slicing]
+corpus = NLPProcessor(attrs=NLP).process(corpus)
+print(labels)
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
-corpus_encoder.summary_statistics()
+
 l_encoder = preprocessing.LabelBinarizer().fit(labels)
 encoded_labels, classes = l_encoder.transform(labels), l_encoder.classes_
 
