@@ -17,6 +17,7 @@ config = configparser.ConfigParser(allow_no_value=True)
 config.read(CONFIGFILE)
 
 ENGINE = os.getenv('ENGINE', default=config['GENERAL']['ENGINE'])
+MAX_STEPS = os.getenv('STEPS', default=config.getint('ENGINE', 'MAX_STEPS'))
 FORCE = os.getenv('FORCE', default=config.getboolean('GENERAL', 'FORCE'))
 VERBOSE = os.getenv('VERBOSE', default=config.getboolean('ENGINE', 'VERBOSE'))
 
@@ -32,7 +33,6 @@ MAX_WORDS = int(config['ENGINE']['MAX_WORDS']) \
 BATCH_SIZE = config.getint('ENGINE', 'BATCH_SIZE')
 STATE_SIZE = config.getint('ENGINE', 'STATE_SIZE')
 STEP_SIZE = config.getint('ENGINE', 'STEP_SIZE')
-MAX_STEPS = config.getint('ENGINE', 'MAX_STEPS')
 
 NLP = json.loads(config['NLP']['PROCESS'])
 NLP_CONTRACTIONS = json.loads(config['NLP']['CONTRACTIONS'])
