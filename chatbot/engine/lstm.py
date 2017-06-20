@@ -102,7 +102,7 @@ def batch_generator(sent_queue, label_queue, batch_size=None, threads=8):
                     tensors=[sent_queue, label_queue],
                     batch_size=batch_size,
                     num_threads=threads,
-                    capacity=1e3,
+                    capacity=batch_size * 10,
                     min_after_dequeue=batch_size,
                     allow_smaller_final_batch=True)
 
