@@ -146,7 +146,7 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-# corpus = NLPProcessor(attrs=NLP).process(corpus)
+corpus = NLPProcessor(attrs=NLP).process(corpus)
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
