@@ -33,7 +33,7 @@ def train_model(documents, labels, sample_size=.3, verbose=True):
 
     if verbose:
         print('starting to generate training data...', end='', flush=True)
-
+    print(documents)
     labeled_feature_set = list()
     for n, doc in enumerate(documents):
         feature = word_tokenize(' '.join(doc))
