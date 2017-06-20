@@ -8,9 +8,13 @@ from flask import Flask, make_response, abort, request, session, g
 from uuid import uuid4
 
 from chatbot.engine import leaflets
-from chatbot.services import engine
 from chatbot.conversation import Conversation
-from chatbot.settings import APP_CONFIG, BASE_URL, PORT_ASK
+from chatbot.settings import APP_CONFIG, BASE_URL, PORT_ASK, ENGINE
+
+if ENGINE.upper() == 'TENSORFLOW':
+    from chatbot.engine.lstm import inference as engine
+elif ENGINE.upper() == 'NLTK':
+    from chatbot.engine.naivebayes import classify as engine
 
 app = Flask(__name__)
 app.config.update(APP_CONFIG)
