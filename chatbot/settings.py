@@ -17,7 +17,8 @@ config = configparser.ConfigParser(allow_no_value=True)
 config.read(CONFIGFILE)
 
 ENGINE = os.getenv('ENGINE', default=config['GENERAL']['ENGINE'])
-MAX_STEPS = os.getenv('STEPS', default=config.getint('ENGINE', 'MAX_STEPS'))
+MAX_STEPS = int(os.getenv('STEPS',
+                          default=config.getint('ENGINE', 'MAX_STEPS')))
 FORCE = os.getenv('FORCE', default=config.getboolean('GENERAL', 'FORCE'))
 VERBOSE = os.getenv('VERBOSE', default=config.getboolean('ENGINE', 'VERBOSE'))
 
