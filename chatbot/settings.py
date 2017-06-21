@@ -73,7 +73,7 @@ def build_config(filename):
     config['ENGINE'] = dict()
     config['ENGINE']['MAX_WORDS'] = ''
     config['ENGINE']['BATCH_SIZE'] = '50'
-    config['ENGINE']['STATE_SIZE'] = '24'
+    config['ENGINE']['STATE_SIZE'] = '128'
     config['ENGINE']['STEP_SIZE'] = '80'
     config['ENGINE']['MAX_STEPS'] = '5000'
     config['ENGINE']['VERBOSE'] = 'false'

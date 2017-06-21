@@ -38,7 +38,7 @@ def resample(docs, labels, sample_size):
 
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
-                           valid_ratio=.2,
+                           valid_ratio=.05,
                            sample_size=1000):
     """break documents into sentences and augment, and one-hot encode labels"""
 
@@ -148,9 +148,6 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 nlp_transform = NLPProcessor(attrs=NLP)
 corpus = nlp_transform.process(corpus)
 
-# corpus = corpus[300:350]
-# labels = labels[300:350]
-
 corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
 corpus_encoder.fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
@@ -191,15 +188,12 @@ word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 
 with tf.device('/gpu:0'):
 
-    # cells = list()
-    # for _ in range(1):
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                          input_keep_prob=keep_prob,
                                          state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob)
-    # cells.append(cell)
-    # cells = tf.nn.rnn_cell.MultiRNNCell(cells)
+
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                              inputs=word_vectors,
