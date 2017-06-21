@@ -18,9 +18,14 @@ from collections import Counter, Sequence
 
 class _BaseEmbedding(object):
     """base class for word embedding through spacy"""
-    def __init__(self):
+    def __init__(self, language=None):
         self._corpus = None
-        self._nlp = spacy.load('en_core_web_md')
+        if not language:
+            print('initiating NLP language pipeline...', end='', flush=True)
+            self._nlp = spacy.load('en_core_web_md')
+            print('done')
+        elif language and isinstance(language, spacy.en.English):
+            self._nlp = language
 
     @staticmethod
     def is_sentence(obj):
@@ -68,8 +73,8 @@ class _BaseEmbedding(object):
 
 class Vectorizer(_BaseEmbedding):
     """produce embedding matrix"""
-    def __init__(self, top=None):
-        super(Vectorizer, self).__init__()
+    def __init__(self, top=None, language=None):
+        super(Vectorizer, self).__init__(language=language)
         self._top = top
 
     def vectorize(self):
@@ -87,8 +92,8 @@ class Vectorizer(_BaseEmbedding):
 
 class WordEmbedding(Vectorizer):
     """encode word tokens and map with embedding matrix"""
-    def __init__(self, top=None):
-        super(WordEmbedding, self).__init__(top=top)
+    def __init__(self, top=None, language=None):
+        super(WordEmbedding, self).__init__(top=top, language=language)
 
     def encode(self, zero_pad=None, pad_length=None):
         """recursively map word with id or 0 if not in vocabulary"""
@@ -112,9 +117,3 @@ class WordEmbedding(Vectorizer):
             return copy[:self.pad_length]
         elif not self.zero_pad:
             return sequence.copy()
-
-    def summary_statistics(self):
-        print(self._vocab)
-        print(len(self._vocab))
-        print(self._max_length)
-        print(self.pad_length)

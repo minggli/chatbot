@@ -22,7 +22,6 @@ from sklearn import model_selection, preprocessing
 from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
 from chatbot.nlp.sparse import NLPProcessor
-from chatbot.models.cnn import ConvolutionalNeuralNetwork
 from chatbot.serializers import feed_conversation
 from chatbot.settings import (CacheSettings, NLP, FORCE, STATE_SIZE, STEP_SIZE,
                               BATCH_SIZE, MAX_WORDS, MAX_STEPS, VERBOSE)
@@ -149,7 +148,8 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 nlp_transform = NLPProcessor(attrs=NLP)
 corpus = nlp_transform.process(corpus)
 
-corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
+corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
+corpus_encoder.fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
 
 l_encoder = preprocessing.LabelBinarizer().fit(labels)

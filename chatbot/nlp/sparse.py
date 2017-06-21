@@ -51,8 +51,9 @@ class NLPProcessor:
                 self._output = [[self._pipeline(sent).text for sent in doc]
                                 for doc in self._content]
                 print('done')
-                with open(CacheSettings.processed_data, 'wb') as f:
-                    pickle.dump(self._output, f)
+                if not prod:
+                    with open(CacheSettings.processed_data, 'wb') as f:
+                        pickle.dump(self._output, f)
                 return self._output
             else:
                 print('fetching cached NLP processed data...', end='',
