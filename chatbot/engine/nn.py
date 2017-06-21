@@ -204,9 +204,10 @@ with tf.device('/gpu:0'):
 
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                         input_keep_prob=keep_prob,
-                                         output_keep_prob=keep_prob,
-                                         state_keep_prob=keep_prob)
+                                        #  input_keep_prob=keep_prob,
+                                        #  state_keep_prob=keep_prob,
+                                         output_keep_prob=keep_prob
+                                         )
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                              inputs=word_vectors,
@@ -269,5 +270,5 @@ def inference(question,
                                      embeddings: embedded_query})[-1].tolist()
 
     samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
-
+    print(samples)
     return feed_conversation(samples, limit, decision_boundary)
