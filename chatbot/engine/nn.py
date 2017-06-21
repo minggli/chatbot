@@ -148,8 +148,8 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 nlp_transform = NLPProcessor(attrs=NLP)
 corpus = nlp_transform.process(corpus)
 
-corpus = corpus[300:350]
-labels = labels[300:350]
+# corpus = corpus[300:350]
+# labels = labels[300:350]
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
 corpus_encoder.fit(corpus)
