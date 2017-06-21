@@ -148,6 +148,9 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 nlp_transform = NLPProcessor(attrs=NLP)
 corpus = nlp_transform.process(corpus)
 
+# corpus = corpus[300:350]
+# labels = labels[300:350]
+
 corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
 corpus_encoder.fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
@@ -188,14 +191,18 @@ word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 
 with tf.device('/gpu:0'):
 
-    cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
-    cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                         input_keep_prob=keep_prob,
-                                         state_keep_prob=keep_prob,
-                                         output_keep_prob=keep_prob
-                                         )
+    cells = list()
+    for _ in range(4):
+        cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
+        cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
+                                             input_keep_prob=keep_prob,
+                                             state_keep_prob=keep_prob,
+                                             output_keep_prob=keep_prob
+                                             )
+        cells.append(cell)
+    cells = tf.nn.rnn_cell.MultiRNNCell(cells)
     sent_length = size(word_vectors)
-    outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
+    outputs, final_state = tf.nn.dynamic_rnn(cell=cells,
                                              inputs=word_vectors,
                                              sequence_length=sent_length,
                                              dtype=tf.float32)
@@ -254,7 +261,9 @@ def inference(question,
 
     class_prob = sess.run(fetches=probs,
                           feed_dict={query: encoded_query,
-                                     embeddings: embedded_query})[-1].tolist()
+                                     embeddings: embedded_query})
+
+    class_prob = class_prob.mean(axis=0).tolist()
 
     samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
     samples.sort(key=lambda x: x[1], reverse=True)
