@@ -25,14 +25,14 @@ class NLPProcessor:
         self._content = None
         self._attrs = attrs
 
-    def process(self, content):
+    def process(self, content, prod=False):
 
         if isinstance(content, str):
             self._is_string = True
             self._doc_object = self._nlp(content)
         elif isinstance(content, list):
             self._is_list = True
-            if not CacheSettings.check(CacheSettings.processed_data):
+            if not CacheSettings.check(CacheSettings.processed_data) or prod:
                 print('using NLP language pipeline to process...', end='',
                       flush=True)
                 self._content = [[self._nlp(' '.join(sent.split()))
@@ -46,7 +46,7 @@ class NLPProcessor:
             return self._output
 
         elif self._is_list:
-            if not CacheSettings.check(CacheSettings.processed_data):
+            if not CacheSettings.check(CacheSettings.processed_data) or prod:
 
                 self._output = [[self._pipeline(sent).text for sent in doc]
                                 for doc in self._content]

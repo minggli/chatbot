@@ -51,7 +51,7 @@ class CacheSettings(object):
     path = config['GENERAL']['DATA_LOCATION']
     index = path + 'index_pages.pkl'
     symptoms = path + 'symptoms.pkl'
-    processed_data = path + 'processed_data.pkl'
+    processed_data = path + 'nlp_data.pkl'
 
     @classmethod
     def check(CacheSettings, filename):

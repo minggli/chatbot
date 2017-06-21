@@ -146,11 +146,8 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-nlp = NLPProcessor(attrs=NLP)
-corpus = nlp.process(corpus)
-
-corpus = corpus[50:100]
-labels = labels[50:100]
+nlp_transform = NLPProcessor(attrs=NLP)
+corpus = nlp_transform.process(corpus)
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
@@ -244,12 +241,12 @@ def inference(question,
               encoder=corpus_encoder,
               classes=classes,
               query=query,
-              nlp=nlp,
+              nlp=nlp_transform,
               embeddings=embeddings,
               limit=5,
               decision_boundary=.85):
     """produce probabilities of most probable topic"""
-    question = nlp.process([question])
+    question = nlp.process([question], prod=True)
     encoder, original_pad_length = encoder.fit(question), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
