@@ -146,7 +146,9 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-corpus = NLPProcessor(attrs=NLP).process(corpus)
+nlp = NLPProcessor(attrs=NLP)
+corpus = nlp.process(corpus)
+
 corpus = corpus[50:100]
 labels = labels[50:100]
 
@@ -189,25 +191,10 @@ word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 
 with tf.device('/gpu:0'):
 
-    # cnn = ConvolutionalNeuralNetwork(shape=[STEP_SIZE, 300, 1],
-    #                                  num_classes=len(labels))
-    # cnn.is_train = is_train
-    # cnn.keep_prob = keep_prob
-    # word_vectors = tf.reshape(word_vectors, [BATCH_SIZE] + cnn._shape)
-    # conv_layer_1 = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 3], [3]])
-    # conv_layer_2 = cnn.add_conv_layer(conv_layer_1, [[3, 3, 3, 6], [6]])
-    # max_pool_1 = cnn.add_pooling_layer(conv_layer_2)
-    # conv_layer_3 = cnn.add_conv_layer(max_pool_1, [[3, 3, 6, 12], [12]])
-    # conv_layer_4 = cnn.add_conv_layer(conv_layer_3, [[3, 3, 12, 24], [24]])
-    # max_pool_2 = cnn.add_pooling_layer(conv_layer_4)
-    # dense_layer_1 = cnn.add_dense_layer(max_pool_2, [[20 * 75 * 24, 256], [256]])
-    # dense_layer_2 = cnn.add_dense_layer(dense_layer_1, [[256, 64], [64]])
-    # logits = cnn.add_read_out_layer(dense_layer_2)
-
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                        #  input_keep_prob=keep_prob,
-                                        #  state_keep_prob=keep_prob,
+                                         input_keep_prob=keep_prob,
+                                         state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob
                                          )
     sent_length = size(word_vectors)
@@ -257,11 +244,12 @@ def inference(question,
               encoder=corpus_encoder,
               classes=classes,
               query=query,
+              nlp=nlp,
               embeddings=embeddings,
               limit=5,
               decision_boundary=.85):
     """produce probabilities of most probable topic"""
-
+    question = nlp.process(question)
     encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
@@ -272,5 +260,6 @@ def inference(question,
                                      embeddings: embedded_query})[-1].tolist()
 
     samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
-    print(samples)
+    samples.sort(key=lambda x: x[1], reverse=True)
+    print(samples[:10])
     return feed_conversation(samples, limit, decision_boundary)
