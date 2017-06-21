@@ -146,7 +146,7 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-corpus = NLPProcessor(attrs=NLP).process(corpus)
+# corpus = NLPProcessor(attrs=NLP).process(corpus)
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS).fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
@@ -157,7 +157,7 @@ encoded_labels, classes = l_encoder.transform(labels), l_encoder.classes_
 embedding_matrix = corpus_encoder.vectorize()
 embed_shape = embedding_matrix.shape
 
-data = flatten_split_resample(encoded_corpus, encoded_labels, valid_ratio=.2)
+data = flatten_split_resample(encoded_corpus, encoded_labels, valid_ratio=0)
 train_sent, train_label = batch_generator(*enqueue(*data[0]), BATCH_SIZE)
 valid_sent, valid_label = batch_generator(*enqueue(*data[1]), BATCH_SIZE)
 
@@ -187,34 +187,34 @@ word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 
 with tf.device('/gpu:0'):
 
-    cnn = ConvolutionalNeuralNetwork(shape=[STEP_SIZE, 300, 1],
-                                     num_classes=len(labels))
-    cnn.is_train = is_train
-    cnn.keep_prob = keep_prob
-    word_vectors = tf.reshape(word_vectors, [BATCH_SIZE] + cnn._shape)
-    conv_layer_1 = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 3], [3]])
-    conv_layer_2 = cnn.add_conv_layer(conv_layer_1, [[3, 3, 3, 6], [6]])
-    max_pool_1 = cnn.add_pooling_layer(conv_layer_2)
-    conv_layer_3 = cnn.add_conv_layer(max_pool_1, [[3, 3, 6, 12], [12]])
-    conv_layer_4 = cnn.add_conv_layer(conv_layer_3, [[3, 3, 12, 24], [24]])
-    max_pool_2 = cnn.add_pooling_layer(conv_layer_4)
-    dense_layer_1 = cnn.add_dense_layer(max_pool_2, [[20 * 75 * 24, 256], [256]])
-    dense_layer_2 = cnn.add_dense_layer(dense_layer_1, [[256, 64], [64]])
-    logits = cnn.add_read_out_layer(dense_layer_2)
+    # cnn = ConvolutionalNeuralNetwork(shape=[STEP_SIZE, 300, 1],
+    #                                  num_classes=len(labels))
+    # cnn.is_train = is_train
+    # cnn.keep_prob = keep_prob
+    # word_vectors = tf.reshape(word_vectors, [BATCH_SIZE] + cnn._shape)
+    # conv_layer_1 = cnn.add_conv_layer(word_vectors, [[3, 3, 1, 3], [3]])
+    # conv_layer_2 = cnn.add_conv_layer(conv_layer_1, [[3, 3, 3, 6], [6]])
+    # max_pool_1 = cnn.add_pooling_layer(conv_layer_2)
+    # conv_layer_3 = cnn.add_conv_layer(max_pool_1, [[3, 3, 6, 12], [12]])
+    # conv_layer_4 = cnn.add_conv_layer(conv_layer_3, [[3, 3, 12, 24], [24]])
+    # max_pool_2 = cnn.add_pooling_layer(conv_layer_4)
+    # dense_layer_1 = cnn.add_dense_layer(max_pool_2, [[20 * 75 * 24, 256], [256]])
+    # dense_layer_2 = cnn.add_dense_layer(dense_layer_1, [[256, 64], [64]])
+    # logits = cnn.add_read_out_layer(dense_layer_2)
 
-    # cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
-    # cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-    #                                      input_keep_prob=keep_prob,
-    #                                      output_keep_prob=keep_prob,
-    #                                      state_keep_prob=keep_prob)
-    # sent_length = size(word_vectors)
-    # outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
-    #                                          inputs=word_vectors,
-    #                                          sequence_length=sent_length,
-    #                                          dtype=tf.float32)
-    #
-    # last = find_last(outputs, sent_length)
-    # logits = tf.matmul(last, W_softmax) + b_softmax
+    cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
+    cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
+                                         input_keep_prob=keep_prob,
+                                         output_keep_prob=keep_prob,
+                                         state_keep_prob=keep_prob)
+    sent_length = size(word_vectors)
+    outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
+                                             inputs=word_vectors,
+                                             sequence_length=sent_length,
+                                             dtype=tf.float32)
+
+    last = find_last(outputs, sent_length)
+    logits = tf.matmul(last, W_softmax) + b_softmax
 
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                             labels=label_feed)
