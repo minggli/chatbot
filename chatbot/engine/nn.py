@@ -148,8 +148,8 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 nlp_transform = NLPProcessor(attrs=NLP)
 corpus = nlp_transform.process(corpus)
 
-# corpus = corpus[300:350]
-# labels = labels[300:350]
+corpus = corpus[300:350]
+labels = labels[300:350]
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
 corpus_encoder.fit(corpus)
@@ -192,7 +192,7 @@ word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 with tf.device('/gpu:0'):
 
     cells = list()
-    for _ in range(4):
+    for _ in range():
         cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
         cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                              input_keep_prob=keep_prob,
