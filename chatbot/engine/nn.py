@@ -192,7 +192,7 @@ word_vectors = tf.nn.embedding_lookup(embeddings, feature_feed)
 with tf.device('/gpu:0'):
 
     cells = list()
-    for _ in range(8):
+    for _ in range(12):
         cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
         cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
                                              input_keep_prob=keep_prob,
