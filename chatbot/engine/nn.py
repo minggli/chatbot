@@ -157,7 +157,7 @@ encoded_labels, classes = l_encoder.transform(labels), l_encoder.classes_
 embedding_matrix = corpus_encoder.vectorize()
 embed_shape = embedding_matrix.shape
 
-data = flatten_split_resample(encoded_corpus, encoded_labels, valid_ratio=0)
+data = flatten_split_resample(encoded_corpus, encoded_labels)
 train_sent, train_label = batch_generator(*enqueue(*data[0]), BATCH_SIZE)
 valid_sent, valid_label = batch_generator(*enqueue(*data[1]), BATCH_SIZE)
 
