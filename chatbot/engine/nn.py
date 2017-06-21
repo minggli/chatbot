@@ -249,8 +249,8 @@ def inference(question,
               limit=5,
               decision_boundary=.85):
     """produce probabilities of most probable topic"""
-    question = nlp.process(question)
-    encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
+    question = nlp.process([question])
+    encoder, original_pad_length = encoder.fit(question), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
     embedded_query = encoder.vectorize()
