@@ -13,6 +13,7 @@ import requests
 
 from tqdm import tqdm
 from bs4 import BeautifulSoup
+from collections import OrderedDict
 from requests.adapters import HTTPAdapter
 from multiprocessing import Pool
 
@@ -85,7 +86,7 @@ class TextMiner:
         self._count = len(urls)
         self._failed_urls = list()
         self._soups = list()
-        self._output = dict()
+        self._output = OrderedDict()
         self._threads = threads
 
         self.__attrs__ = attrs
