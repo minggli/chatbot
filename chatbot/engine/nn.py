@@ -193,8 +193,8 @@ with tf.device('/gpu:0'):
 
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                         input_keep_prob=keep_prob,
-                                         state_keep_prob=keep_prob,
+                                        #  input_keep_prob=keep_prob,
+                                        #  state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob)
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
@@ -207,7 +207,7 @@ with tf.device('/gpu:0'):
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                             labels=label_feed)
     loss = tf.reduce_mean(cross_entropy)
-    train_step = tf.train.RMSPropOptimizer(1e-4).minimize(loss)
+    train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
 
     probs = tf.nn.softmax(logits)
     correct = tf.equal(tf.argmax(probs, 1), tf.argmax(label_feed, 1))
