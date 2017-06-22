@@ -35,7 +35,7 @@ BATCH_SIZE = config.getint('ENGINE', 'BATCH_SIZE')
 STATE_SIZE = config.getint('ENGINE', 'STATE_SIZE')
 STEP_SIZE = config.getint('ENGINE', 'STEP_SIZE')
 
-NLP = json.loads(config['NLP']['PROCESS'])
+NLP_ATTRS = json.loads(config['NLP']['PROCESS'])
 NLP_CONTRACTIONS = json.loads(config['NLP']['CONTRACTIONS'])
 
 APP_CONFIG = {

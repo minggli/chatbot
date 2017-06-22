@@ -1,7 +1,7 @@
 """
     sparse
 
-    NLP processor
+    NLP pipeline
 """
 
 import spacy
@@ -10,7 +10,7 @@ import pickle
 from chatbot.settings import CacheSettings
 
 
-class NLPProcessor:
+class NLPPipeline:
     """using SpaCy's features to extract relevance out of raw texts."""
 
     def __init__(self, attrs):

@@ -1,6 +1,6 @@
 import sys
 
-from chatbot.helpers import NLPProcessor
+from chatbot.helpers import NLPPipeline
 from chatbot.settings import NLP
 
 try:
@@ -8,7 +8,7 @@ try:
 except IndexError:
     raise RuntimeError('there is no texts in command line.')
 
-nlp = NLPProcessor(attrs=NLP)
+nlp = NLPPipeline(attrs=NLP)
 
 for token in nlp._nlp(texts):
     print("{0:<15} :{1:<10} {2:>5}: {3}".format(

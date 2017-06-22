@@ -12,9 +12,9 @@ from nltk.tokenize import word_tokenize
 from nltk.classify import NaiveBayesClassifier
 
 from chatbot.engine import TextMiner, corpus, labels
-from chatbot.nlp.sparse import NLPProcessor
+from chatbot.nlp.sparse import NLPPipeline
 from chatbot.serializers import feed_conversation
-from chatbot.settings import NLP
+from chatbot.settings import NLP_ATTRS
 
 nltk.download('punkt')
 
@@ -58,7 +58,7 @@ def preprocess(q):
            word_tokenize(nlp.process(TextMiner.split_contraction(q))))
 
 
-nlp = NLPProcessor(attrs=NLP)
+nlp = NLPPipeline(attrs=NLP_ATTRS)
 processed_data = nlp.process(corpus)
 engine = train_model(processed_data, labels, sample_size=0.3)
 

@@ -21,10 +21,11 @@ from sklearn import model_selection, preprocessing
 
 from chatbot.engine import corpus, labels
 from chatbot.nlp.embedding import WordEmbedding
-from chatbot.nlp.sparse import NLPProcessor
+from chatbot.nlp.sparse import NLPPipeline
 from chatbot.serializers import feed_conversation
-from chatbot.settings import (CacheSettings, NLP, FORCE, STATE_SIZE, STEP_SIZE,
-                              BATCH_SIZE, MAX_WORDS, MAX_STEPS, VERBOSE)
+from chatbot.settings import (CacheSettings, NLP_ATTRS, FORCE, STATE_SIZE,
+                              STEP_SIZE, BATCH_SIZE, MAX_WORDS, MAX_STEPS,
+                              VERBOSE)
 
 
 def resample(docs, labels, sample_size):
@@ -145,7 +146,7 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
                                      train_loss))
 
 
-nlp_transform = NLPProcessor(attrs=NLP)
+nlp_transform = NLPPipeline(attrs=NLP_ATTRS)
 corpus = nlp_transform.process(corpus)
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
@@ -213,12 +214,12 @@ with tf.device('/gpu:0'):
     correct = tf.equal(tf.argmax(probs, 1), tf.argmax(label_feed, 1))
     accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
-    saver = tf.train.Saver(max_to_keep=5, var_list=tf.global_variables())
+saver = tf.train.Saver(max_to_keep=5, var_list=tf.global_variables())
 
-    init = tf.global_variables_initializer()
-
-    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
-    sess.run(init)
+init = tf.global_variables_initializer()
+graph_config = tf.ConfigProto(allow_soft_placement=True)
+sess = tf.Session(config=graph_config)
+sess.run(init)
 
 with sess.as_default(), tf.device('/cpu:0'):
     try:
