@@ -193,8 +193,6 @@ with tf.device('/gpu:0'):
 
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                        #  input_keep_prob=keep_prob,
-                                        #  state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob)
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
