@@ -40,7 +40,7 @@ def resample(docs, labels, sample_size):
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
                            valid_ratio=.2,
-                           sample_size=5000):
+                           sample_size=500):
     """break documents into sentences and augment, and one-hot encode labels"""
 
     flattened_docs = list()
