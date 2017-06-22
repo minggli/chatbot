@@ -75,7 +75,7 @@ def build_config(filename):
     config['ENGINE']['BATCH_SIZE'] = '500'
     config['ENGINE']['STATE_SIZE'] = '128'
     config['ENGINE']['STEP_SIZE'] = '40'
-    config['ENGINE']['MAX_STEPS'] = '5000'
+    config['ENGINE']['MAX_STEPS'] = '3000'
     config['ENGINE']['VERBOSE'] = 'false'
     config['WEBDATA'] = dict()
     config['WEBDATA']['BASE_URL'] = 'http://www.nhs.uk'

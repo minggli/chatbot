@@ -40,7 +40,7 @@ def resample(docs, labels, sample_size):
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
                            valid_ratio=.2,
-                           sample_size=500):
+                           sample_size=5000):
     """break documents into sentences and augment, and one-hot encode labels"""
 
     flattened_docs = list()
@@ -150,6 +150,9 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
 nlp_transform = NLPPipeline(attrs=NLP_ATTRS)
 corpus = nlp_transform.process(corpus)
+
+corpus = corpus[50:100]
+labels = labels[50:100]
 
 corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
 corpus_encoder.fit(corpus)
