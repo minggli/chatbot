@@ -40,7 +40,7 @@ def resample(docs, labels, sample_size):
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
                            valid_ratio=.2,
-                           sample_size=500):
+                           sample_size=5000):
     """break documents into sentences and augment, and one-hot encode labels"""
 
     flattened_docs = list()
@@ -137,11 +137,10 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
         if global_step and global_step % 100 == 0:
             valid_accuracy, valid_loss = sess.run(fetches=[metric, loss])
-            print("step {0} of {3}, train accuracy: {1:.4f} log loss: {2:.4f}"
-                  .format(global_step, train_accuracy, train_loss, n))
-            print("step {0} of {3}, valid accuracy: {1:.4f} "
-                  "log loss: {2:.4f}".format(global_step, valid_accuracy,
-                                             valid_loss, n))
+            print("step {0} of {4}, train accuracy: {1:.4f}, "
+                  "valid accuracy: {2:.4f} log loss: {3:.4f}".format(
+                                            global_step, train_accuracy,
+                                            valid_accuracy, valid_loss, n))
 
     print("step {0} of {0}, train accuray: {1:.4f}, valid accuracy {2:.4f} "
           "log loss: {3:.4f}".format(n, train_accuracy, valid_accuracy,
