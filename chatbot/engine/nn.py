@@ -40,7 +40,7 @@ def resample(docs, labels, sample_size):
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
                            valid_ratio=.2,
-                           sample_size=1000):
+                           sample_size=5000):
     """break documents into sentences and augment, and one-hot encode labels"""
 
     flattened_docs = list()
@@ -193,8 +193,8 @@ with tf.device('/gpu:0'):
 
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                        #  input_keep_prob=keep_prob,
-                                        #  state_keep_prob=keep_prob,
+                                         input_keep_prob=keep_prob,
+                                         state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob)
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
