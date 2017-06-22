@@ -55,7 +55,8 @@ def flatten_split_resample(encoded_corpuses, encoded_labels,
 
     X_train, X_test, y_train, y_test = \
         model_selection.train_test_split(ravelled_corpus, ravelled_labels,
-                                         test_size=valid_ratio)
+                                         test_size=valid_ratio,
+                                         stratify=ravelled_labels)
 
     return resample(X_train, y_train, sample_size),\
         resample(X_test, y_test, sample_size)
@@ -195,19 +196,16 @@ with tf.device('/gpu:0'):
                                          input_keep_prob=keep_prob,
                                          state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob)
-
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
                                              inputs=word_vectors,
                                              sequence_length=sent_length,
                                              dtype=tf.float32)
-
     last = find_last(outputs, sent_length)
     logits = tf.matmul(last, W_softmax) + b_softmax
 
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                             labels=label_feed)
-
     loss = tf.reduce_mean(cross_entropy)
     train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
 
