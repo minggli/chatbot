@@ -39,8 +39,8 @@ def resample(docs, labels, sample_size):
 
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
-                           valid_ratio=.05,
-                           sample_size=1000):
+                           valid_ratio=.2,
+                           sample_size=5000):
     """break documents into sentences and augment, and one-hot encode labels"""
 
     flattened_docs = list()
@@ -55,8 +55,7 @@ def flatten_split_resample(encoded_corpuses, encoded_labels,
 
     X_train, X_test, y_train, y_test = \
         model_selection.train_test_split(ravelled_corpus, ravelled_labels,
-                                         test_size=valid_ratio,
-                                         stratify=ravelled_labels)
+                                         test_size=valid_ratio)
 
     return resample(X_train, y_train, sample_size),\
         resample(X_test, y_test, sample_size)
@@ -137,6 +136,8 @@ def train(n, sess, is_train, optimiser, metric, loss, verbose):
 
         if global_step and global_step % 100 == 0:
             valid_accuracy, valid_loss = sess.run(fetches=[metric, loss])
+            print("step {0} of {3}, train accuracy: {1:.4f} log loss: {2:.4f}"
+                  .format(global_step, train_accuracy, train_loss, n))
             print("step {0} of {3}, valid accuracy: {1:.4f} "
                   "log loss: {2:.4f}".format(global_step, valid_accuracy,
                                              valid_loss, n))
