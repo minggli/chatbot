@@ -40,7 +40,7 @@ def resample(docs, labels, sample_size):
 
 def flatten_split_resample(encoded_corpuses, encoded_labels,
                            valid_ratio=.2,
-                           sample_size=5000):
+                           sample_size=1000):
     """break documents into sentences and augment, and one-hot encode labels"""
 
     flattened_docs = list()
@@ -177,7 +177,7 @@ is_train = tf.placeholder_with_default(input=False,
 
 feature_feed = tf.cond(is_train, lambda: train_sent, lambda: query)
 label_feed = tf.cond(is_train, lambda: train_label, lambda: valid_label)
-keep_prob = tf.cond(is_train, lambda: tf.constant(.8), lambda: tf.constant(1.))
+keep_prob = tf.cond(is_train, lambda: tf.constant(.5), lambda: tf.constant(1.))
 
 W_softmax = tf.get_variable(name='W',
                             shape=[STATE_SIZE, len(labels)],
@@ -193,8 +193,8 @@ with tf.device('/gpu:0'):
 
     cell = tf.nn.rnn_cell.BasicLSTMCell(STATE_SIZE)
     cell = tf.nn.rnn_cell.DropoutWrapper(cell=cell,
-                                         input_keep_prob=keep_prob,
-                                         state_keep_prob=keep_prob,
+                                        #  input_keep_prob=keep_prob,
+                                        #  state_keep_prob=keep_prob,
                                          output_keep_prob=keep_prob)
     sent_length = size(word_vectors)
     outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
@@ -207,7 +207,7 @@ with tf.device('/gpu:0'):
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                             labels=label_feed)
     loss = tf.reduce_mean(cross_entropy)
-    train_step = tf.train.RMSPropOptimizer(1e-3).minimize(loss)
+    train_step = tf.train.RMSPropOptimizer(1e-4).minimize(loss)
 
     probs = tf.nn.softmax(logits)
     correct = tf.equal(tf.argmax(probs, 1), tf.argmax(label_feed, 1))
