@@ -18,14 +18,11 @@ from collections import Counter, Sequence
 
 class _BaseEmbedding(object):
     """base class for word embedding through spacy"""
-    def __init__(self, language=None):
+    def __init__(self):
         self._corpus = None
-        if not language:
-            print('initiating NLP language pipeline...', end='', flush=True)
-            self._nlp = spacy.load('en_core_web_md')
-            print('done')
-        elif language and isinstance(language, spacy.en.English):
-            self._nlp = language
+        print('initiating NLP language pipeline...', end='', flush=True)
+        self._nlp = spacy.load('en_core_web_md')
+        print('done')
 
     @staticmethod
     def is_sentence(obj):
@@ -49,9 +46,9 @@ class _BaseEmbedding(object):
         except AssertionError:
             raise ValueError('corpus must be iterable containing list of'
                              ' sequences.')
-        self._corpus = [[[word.text for word in self(sents)]
-                        for sents in document] for document in value]
-
+        self._corpus = [[[word.text for word in st] for chunk in document
+                        for st in self(' '.join(chunk.split())).sents]
+                        for document in value]
         ivocab = islice(zip(*Counter(chain(*chain(*self._corpus))).
                         most_common(self._top)), 1)
         self._word2ids = {word: ids for ids, word in
@@ -72,8 +69,8 @@ class _BaseEmbedding(object):
 
 class Vectorizer(_BaseEmbedding):
     """produce embedding matrix"""
-    def __init__(self, top=None, language=None):
-        super(Vectorizer, self).__init__(language=language)
+    def __init__(self, top=None):
+        super(Vectorizer, self).__init__()
         self._top = top
 
     def vectorize(self):
@@ -91,8 +88,8 @@ class Vectorizer(_BaseEmbedding):
 
 class WordEmbedding(Vectorizer):
     """encode word tokens and map with embedding matrix"""
-    def __init__(self, top=None, language=None):
-        super(WordEmbedding, self).__init__(top=top, language=language)
+    def __init__(self, top=None):
+        super(WordEmbedding, self).__init__(top=top)
 
     def encode(self, zero_pad=None, pad_length=None):
         """recursively map word with id or 0 if not in vocabulary"""

@@ -21,16 +21,11 @@ from chatbot.engine.helper import (flatten_split_resample, batch_generator,
                                    find_last, size, enqueue, train,
                                    save_session, restore_session)
 from chatbot.nlp.embedding import WordEmbedding
-from chatbot.nlp.sparse import NLPPipeline
 from chatbot.serializers import feed_conversation
-from chatbot.settings import (CacheSettings, NLP_ATTRS, FORCE, STATE_SIZE,
-                              STEP_SIZE, BATCH_SIZE, MAX_WORDS, MAX_STEPS,
-                              VERBOSE)
+from chatbot.settings import (CacheSettings, FORCE, STATE_SIZE, STEP_SIZE,
+                              BATCH_SIZE, MAX_WORDS, MAX_STEPS, VERBOSE)
 
-nlp_transform = NLPPipeline(attrs=NLP_ATTRS)
-corpus = nlp_transform.process(corpus)
-
-corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
+corpus_encoder = WordEmbedding(top=MAX_WORDS)
 corpus_encoder.fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
 
@@ -118,14 +113,12 @@ def inference(question,
               encoder=corpus_encoder,
               classes=classes,
               query=query,
-              nlp=nlp_transform,
               embeddings=embeddings,
               limit=5,
-              decision_boundary=.85):
+              decision_boundary=.65):
     """produce probabilities of most probable topic"""
-    question = nlp.process([question], prod=True)
 
-    encoder, original_pad_length = encoder.fit(question), encoder.pad_length
+    encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
     embedded_query = encoder.vectorize()
@@ -135,7 +128,6 @@ def inference(question,
                                      embeddings: embedded_query})
 
     class_prob = class_prob.mean(axis=0).tolist()
-
     samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
 
     return feed_conversation(samples, limit, decision_boundary)
