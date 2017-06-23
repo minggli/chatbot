@@ -250,11 +250,13 @@ def inference(question,
               decision_boundary=.85):
     """produce probabilities of most probable topic"""
     question = nlp.process([question], prod=True)
+    for s in question:
+        print(s)
     encoder, original_pad_length = encoder.fit(question), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
     embedded_query = encoder.vectorize()
-
+    print(embedded_query)
     class_prob = sess.run(fetches=probs,
                           feed_dict={query: encoded_query,
                                      embeddings: embedded_query})
