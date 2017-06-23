@@ -19,8 +19,10 @@ config.read(CONFIGFILE)
 ENGINE = os.getenv('ENGINE', default=config['GENERAL']['ENGINE'])
 MAX_STEPS = int(os.getenv('STEPS',
                           default=config.getint('ENGINE', 'MAX_STEPS')))
-FORCE = os.getenv('FORCE', default=config.getboolean('GENERAL', 'FORCE'))
-VERBOSE = os.getenv('VERBOSE', default=config.getboolean('ENGINE', 'VERBOSE'))
+FORCE = bool(os.getenv('FORCE',
+             default=config.getboolean('GENERAL', 'FORCE')))
+VERBOSE = bool(os.getenv('VERBOSE',
+               default=config.getboolean('ENGINE', 'VERBOSE')))
 
 WEB_BASE_URL = config['WEBDATA']['BASE_URL']
 WEB_METAKEY = json.loads(config['WEBDATA']['META'])
