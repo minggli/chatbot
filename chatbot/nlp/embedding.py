@@ -56,10 +56,9 @@ class _BaseEmbedding(object):
                         most_common(self._top)), 1)
         self._word2ids = {word: ids for ids, word in
                           enumerate(*ivocab, start=2)}
-        self._vocab = [word for word in self._word2ids]
-        self._vocab.insert(0, '|UNK|')
-        self._vocab.insert(1, '|PAD|')
         self._word2ids.update({'|UNK|': 0, '|PAD|': 1})
+        orderedlist = sorted(list(self._word2ids.items()), key=lambda x: x[1])
+        self._vocab = [word2id[0] for word2id in orderedlist]
 
     def __call__(self, text):
         return self._nlp(text)
