@@ -256,7 +256,10 @@ def inference(question,
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
     embedded_query = encoder.vectorize()
-    print(embedded_query)
+    print(encoder._vocab)
+    print(encoder._word2ids)
+    print(encoded_query)
+    print(encoder._corpus)
     class_prob = sess.run(fetches=probs,
                           feed_dict={query: encoded_query,
                                      embeddings: embedded_query})
