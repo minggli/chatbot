@@ -157,9 +157,6 @@ corpus_encoder = WordEmbedding(top=MAX_WORDS, language=nlp_transform._nlp)
 corpus_encoder.fit(corpus)
 encoded_corpus = corpus_encoder.encode(zero_pad=True, pad_length=STEP_SIZE)
 
-lens = [len(s) for doc in corpus_encoder._corpus for s in doc]
-print(max(lens), sum(lens)//len(lens))
-
 l_encoder = preprocessing.LabelBinarizer().fit(labels)
 encoded_labels, classes = l_encoder.transform(labels), l_encoder.classes_
 
@@ -250,16 +247,12 @@ def inference(question,
               decision_boundary=.85):
     """produce probabilities of most probable topic"""
     question = nlp.process([question], prod=True)
-    for s in question:
-        print(s)
+
     encoder, original_pad_length = encoder.fit(question), encoder.pad_length
     encoded_query = encoder.encode(pad_length=original_pad_length)
     encoded_query = np.array(encoded_query).reshape(-1, original_pad_length)
     embedded_query = encoder.vectorize()
-    print(encoder._vocab)
-    print(encoder._word2ids)
-    print(encoded_query)
-    print(encoder._corpus)
+
     class_prob = sess.run(fetches=probs,
                           feed_dict={query: encoded_query,
                                      embeddings: embedded_query})
