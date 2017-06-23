@@ -35,8 +35,9 @@ class NLPPipeline:
             if not CacheSettings.check(CacheSettings.processed_data) or prod:
                 print('using NLP language pipeline to process...', end='',
                       flush=True)
-                self._content = [[self._nlp(' '.join(sent.split()))
-                                  for sent in doc] for doc in content]
+                self._content = [[s for chunk in doc for s in
+                                  self._nlp(' '.join(chunk.split())).sents]
+                                 for doc in content]
         else:
             raise TypeError('require string or dictionary.')
 
@@ -50,6 +51,8 @@ class NLPPipeline:
 
                 self._output = [[self._pipeline(sent).text for sent in doc]
                                 for doc in self._content]
+                self._output = self._limitlengh(self._output, limit=1)
+
                 print('done')
                 if not prod:
                     with open(CacheSettings.processed_data, 'wb') as f:
@@ -73,8 +76,6 @@ class NLPPipeline:
     def __part_of_speech__(self, doc_object, parts, switch=True):
         """filter unrelated parts of speech (POS) and return required parts
         """
-        assert isinstance(
-            doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(
             ' '.join([token.text for token in doc_object
                       if token.pos_ not in parts])) if switch else doc_object
@@ -82,18 +83,17 @@ class NLPPipeline:
     def __stop_word__(self, doc_object, switch=True):
         """only remove stops when not part of phrase e.g. back pain.
         """
-        assert isinstance(
-            doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         noun_chunks = ' '.join(
-            set([phrase.text for phrase in doc_object.noun_chunks]))
-        return self._nlp(
-            ' '.join([token.text for token in doc_object
-                      if token.is_stop is False or
-                      token.text in noun_chunks])) if switch else doc_object
+            set([np.text for np in self._nlp(doc_object.text).noun_chunks]))
+        return self._nlp(' '.join(
+                    [token.text for token in doc_object if token.is_stop
+                     is False or token.text in noun_chunks])
+                     ) if switch else doc_object
 
     def __lemmatize__(self, doc_object, switch=True):
-        assert isinstance(
-            doc_object, spacy.tokens.doc.Doc), 'require a SpaCy document'
         return self._nlp(
             ' '.join([token.lemma_
                      for token in doc_object])) if switch else doc_object
+
+    def _limitlengh(self, it, limit=1):
+        return [[sent for sent in d if len(sent.split()) > limit] for d in it]

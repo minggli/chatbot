@@ -26,7 +26,7 @@ def word_feat(words):
 
 def resample(feat, label, sample_size, n=100):
     k = int(sample_size * len(feat))
-    return [(word_feat(random.sample(feat, k)), label) for _ in range(n)]
+    return ((word_feat(random.sample(feat, k)), label) for _ in range(n))
 
 
 def train_model(documents, labels, sample_size=.3, verbose=True):
@@ -46,7 +46,7 @@ def train_model(documents, labels, sample_size=.3, verbose=True):
         print('training model...this may take a few minutes.',
               flush=True, end='')
 
-    trained_model = NaiveBayesClassifier.train(labeled_feature_set)
+    trained_model = NaiveBayesClassifier.train(iter(labeled_feature_set))
 
     if verbose:
         print('done', flush=True)
