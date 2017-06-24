@@ -12,53 +12,6 @@ import configparser
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 sys.setrecursionlimit(30000)
 
-CONFIGFILE = os.getenv('CONFIGFILE', default='./config.ini')
-config = configparser.ConfigParser(allow_no_value=True)
-config.read(CONFIGFILE)
-
-ENGINE = os.getenv('ENGINE', default=config['GENERAL']['ENGINE'])
-MAX_STEPS = int(os.getenv('STEPS',
-                          default=config.getint('ENGINE', 'MAX_STEPS')))
-FORCE = bool(os.getenv('FORCE',
-             default=config.getboolean('GENERAL', 'FORCE')))
-VERBOSE = bool(os.getenv('VERBOSE',
-               default=config.getboolean('ENGINE', 'VERBOSE')))
-
-WEB_BASE_URL = config['WEBDATA']['BASE_URL']
-WEB_METAKEY = json.loads(config['WEBDATA']['META'])
-
-BASE_URL = config['API']['BASE_URL']
-PORT_ASK = config['API']['PORT_ASK']
-PORT_SYMPTOMS = config['API']['PORT_SYMPTOMS']
-
-MAX_WORDS = int(config['ENGINE']['MAX_WORDS']) \
-            if config['ENGINE']['MAX_WORDS'] else None
-BATCH_SIZE = config.getint('ENGINE', 'BATCH_SIZE')
-STATE_SIZE = config.getint('ENGINE', 'STATE_SIZE')
-STEP_SIZE = config.getint('ENGINE', 'STEP_SIZE')
-
-NLP_ATTRS = json.loads(config['NLP']['PROCESS'])
-NLP_CONTRACTIONS = json.loads(config['NLP']['CONTRACTIONS'])
-
-APP_CONFIG = {
-    'SECRET_KEY': '\x9c\xedh\xdf\x8dS\r\xe3]\xc3\xd3\xbd\x0488\xfc\xa6<\xfe'
-                  '\x94\xc8\xe0\xc7\xdb',
-    'SESSION_COOKIE_NAME': 'chatbot_session',
-    'DEBUG': False
-}
-
-
-class CacheSettings(object):
-
-    path = config['GENERAL']['DATA_LOCATION']
-    index = path + 'index_pages.pkl'
-    symptoms = path + 'symptoms.pkl'
-    processed_data = path + 'nlp_data.pkl'
-
-    @classmethod
-    def check(CacheSettings, filename):
-        return True if os.path.exists(filename) else False
-
 
 def build_config(filename):
     """create a configparser object and write a ini file."""
@@ -222,3 +175,54 @@ def build_config(filename):
 
     with open(CONFIGFILE, 'w') as f:
         config.write(f)
+
+
+CONFIGFILE = os.getenv('CONFIGFILE', default='./config.ini')
+config = configparser.ConfigParser(allow_no_value=True)
+if not os.path.exists(CONFIGFILE):
+    build_config(CONFIGFILE)
+
+config.read(CONFIGFILE)
+
+ENGINE = os.getenv('ENGINE', default=config['GENERAL']['ENGINE'])
+MAX_STEPS = int(os.getenv('STEPS',
+                          default=config.getint('ENGINE', 'MAX_STEPS')))
+FORCE = bool(os.getenv('FORCE',
+             default=config.getboolean('GENERAL', 'FORCE')))
+VERBOSE = bool(os.getenv('VERBOSE',
+               default=config.getboolean('ENGINE', 'VERBOSE')))
+
+WEB_BASE_URL = config['WEBDATA']['BASE_URL']
+WEB_METAKEY = json.loads(config['WEBDATA']['META'])
+
+BASE_URL = config['API']['BASE_URL']
+PORT_ASK = config['API']['PORT_ASK']
+PORT_SYMPTOMS = config['API']['PORT_SYMPTOMS']
+
+MAX_WORDS = int(config['ENGINE']['MAX_WORDS']) \
+            if config['ENGINE']['MAX_WORDS'] else None
+BATCH_SIZE = config.getint('ENGINE', 'BATCH_SIZE')
+STATE_SIZE = config.getint('ENGINE', 'STATE_SIZE')
+STEP_SIZE = config.getint('ENGINE', 'STEP_SIZE')
+
+NLP_ATTRS = json.loads(config['NLP']['PROCESS'])
+NLP_CONTRACTIONS = json.loads(config['NLP']['CONTRACTIONS'])
+
+APP_CONFIG = {
+    'SECRET_KEY': '\x9c\xedh\xdf\x8dS\r\xe3]\xc3\xd3\xbd\x0488\xfc\xa6<\xfe'
+                  '\x94\xc8\xe0\xc7\xdb',
+    'SESSION_COOKIE_NAME': 'chatbot_session',
+    'DEBUG': False
+}
+
+
+class CacheSettings(object):
+
+    path = config['GENERAL']['DATA_LOCATION']
+    index = path + 'index_pages.pkl'
+    symptoms = path + 'symptoms.pkl'
+    processed_data = path + 'nlp_data.pkl'
+
+    @classmethod
+    def check(CacheSettings, filename):
+        return True if os.path.exists(filename) else False
