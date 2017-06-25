@@ -27,7 +27,7 @@ def build_config(filename):
     config['API']['PORT_SYMPTOMS'] = '5001'
     config['ENGINE'] = dict()
     config['ENGINE']['MAX_WORDS'] = ''
-    config['ENGINE']['BATCH_SIZE'] = '500'
+    config['ENGINE']['BATCH_SIZE'] = '300'
     config['ENGINE']['STATE_SIZE'] = '128'
     config['ENGINE']['STEP_SIZE'] = '60'
     config['ENGINE']['MAX_STEPS'] = '3000'
