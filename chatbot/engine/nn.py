@@ -115,7 +115,7 @@ def inference(question,
               query=query,
               embeddings=embeddings,
               limit=5,
-              decision_boundary=.65):
+              threshold=.65):
     """produce probabilities of most probable topic"""
 
     encoder, original_pad_length = encoder.fit([question]), encoder.pad_length
@@ -130,4 +130,4 @@ def inference(question,
     class_prob = class_prob.mean(axis=0).tolist()
     samples = [(class_, class_prob[k]) for k, class_ in enumerate(classes)]
 
-    return feed_conversation(samples, limit, decision_boundary)
+    return feed_conversation(samples, limit, threshold)

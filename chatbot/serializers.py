@@ -5,7 +5,7 @@ factories reuseable helpers
 """
 
 
-def feed_conversation(samples, limit=5, decision_boundary=.85):
+def feed_conversation(samples, limit=5, threshold=.85):
     """helper function to feed result of classifier to Conversation module."""
     try:
         iter(samples)
@@ -16,9 +16,9 @@ def feed_conversation(samples, limit=5, decision_boundary=.85):
     samples.sort(key=lambda x: x[1], reverse=True)
     samples = samples[:limit]
 
-    if samples[0][1] > decision_boundary:
+    if samples[0][1] > threshold:
         return samples[0]
-    elif samples[0][1] > decision_boundary / 3:
+    elif samples[0][1] > threshold / 3:
         return samples
     else:
         return None

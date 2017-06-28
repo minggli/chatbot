@@ -65,7 +65,7 @@ engine = train_model(processed_data, labels, sample_size=0.3)
 
 def classify(query,
              engine=engine,
-             decision_boundary=.85,
+             threshold=.85,
              limit=5):
     """spell out most probable diseases and respective percentages."""
     words = preprocess(' '.join(query))
@@ -75,4 +75,4 @@ def classify(query,
 
     samples = [tuple((key, objects.prob(key))) for key in keys]
 
-    return feed_conversation(samples, limit, decision_boundary)
+    return feed_conversation(samples, limit, threshold)
