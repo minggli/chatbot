@@ -27,7 +27,7 @@ def build_config(filename):
     config['API']['PORT_SYMPTOMS'] = '5001'
     config['ENGINE'] = dict()
     config['ENGINE']['MAX_WORDS'] = ''
-    config['ENGINE']['BATCH_SIZE'] = '300'
+    config['ENGINE']['BATCH_SIZE'] = '500'
     config['ENGINE']['STATE_SIZE'] = '128'
     config['ENGINE']['STEP_SIZE'] = '60'
     config['ENGINE']['MAX_STEPS'] = '3000'
@@ -38,13 +38,13 @@ def build_config(filename):
     {"desc_attributes": {"name": "description"},
     "subj_attributes": {"name": "DC.title"},
     "article_attributes": {
-                        "start_t_0": "Overview",
-                        "start_t_1": "Print:",
-                        "start_t_2": "",
-                        "end_t_0": "Share:",
-                        "end_t_1": "",
-                        "end_t_2": ""}
-                                }"""
+                            "start_t_0": "Overview",
+                            "start_t_1": "Print:",
+                            "start_t_2": "",
+                            "end_t_0": "Share:",
+                            "end_t_1": "",
+                            "end_t_2": ""}
+                            }"""
 
     config['NLP'] = dict()
     config['NLP']['PROCESS'] = """
