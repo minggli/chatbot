@@ -30,7 +30,7 @@ Following endpoints are available to consume:
 
 It accepts payload as simple as `{"questions": "your questions or description of symptoms"}`  
 
-`GET /chatbot/api/v1/symptoms`
+`GET /chatbot/api/v1/symptoms` or
 `GET /chatbot/api/v1/symptoms/<string:symptom_name>`
 
 To list all leaflets or leaflet for the chosen symptom.
