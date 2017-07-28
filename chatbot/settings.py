@@ -173,7 +173,7 @@ def build_config(filename):
     "you've": "you have"
     }"""
 
-    with open(CONFIGFILE, 'w') as f:
+    with open(filename, 'w') as f:
         config.write(f)
 
 
