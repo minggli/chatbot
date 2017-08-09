@@ -4,6 +4,7 @@ Dockerfile
 .DS_Store
 .gitignore
 README.md
+config.ini
 env.*
 devops
 
