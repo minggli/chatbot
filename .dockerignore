@@ -1,0 +1,19 @@
+.git
+unused
+Dockerfile
+.DS_Store
+.gitignore
+README.md
+config.ini
+env.*
+devops
+
+# To prevent storing dev/temporary container data
+*.csv
+tmp
+
+chatbot/__pycache__
+chatbot/*/__pycache__
+cache
+install.sh
+venv
