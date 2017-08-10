@@ -12,8 +12,10 @@ devops
 *.csv
 tmp
 
-chatbot/__pycache__
-chatbot/*/__pycache__
+*/__pycache__
+*/*/__pycache__
+*/*/*/__pycache__
+
 cache
 install.sh
 venv
