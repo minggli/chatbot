@@ -4,7 +4,8 @@
     NLP pipeline
 """
 
-import spacy
+# import spacy
+import en_core_web_md
 import pickle
 
 from chatbot.settings import CacheSettings
@@ -15,7 +16,8 @@ class NLPPipeline:
 
     def __init__(self, attrs):
         print('initiating NLP language pipeline...', end='', flush=True)
-        self._nlp = spacy.load('en_core_web_md')
+        # self._nlp = spacy.load('en_core_web_md')
+        self._nlp = en_core_web_md.load()
         print('done')
 
         self._is_string = None

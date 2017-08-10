@@ -9,7 +9,8 @@ GloVe: Global Vectors for Word Representation
 Pennington et al (2014)
 """
 
-import spacy
+# import spacy
+import en_core_web_md
 import numpy as np
 
 from itertools import chain, islice
@@ -21,7 +22,8 @@ class _BaseEmbedding(object):
     def __init__(self):
         self._corpus = None
         print('initiating NLP language pipeline...', end='', flush=True)
-        self._nlp = spacy.load('en_core_web_md')
+        # self._nlp = spacy.load('en_core_web_md')
+        self._nlp = en_core_web_md.load()
         print('done')
 
     @staticmethod
