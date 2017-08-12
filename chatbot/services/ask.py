@@ -62,4 +62,4 @@ def ask(engine=engine):
 
 
 if __name__ == '__main__':
-    app.run(port=PORT_ASK)
+    app.run(host='0.0.0.0', port=PORT_ASK)
