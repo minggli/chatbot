@@ -38,4 +38,4 @@ def show_symptom(symptom_name):
 
 
 if __name__ == '__main__':
-    app.run(port=PORT_SYMPTOMS)
+    app.run(host='0.0.0.0', port=PORT_SYMPTOMS)
