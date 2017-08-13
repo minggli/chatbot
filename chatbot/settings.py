@@ -18,7 +18,7 @@ def build_config(filename):
     config = configparser.ConfigParser(allow_no_value=True)
 
     config['GENERAL'] = dict()
-    config['GENERAL']['ENGINE'] = 'TENSORFLOW'
+    config['GENERAL']['ENGINE'] = 'NLTK'
     config['GENERAL']['FORCE'] = 'false'
     config['GENERAL']['DATA_LOCATION'] = 'cache/'
     config['API'] = dict()
