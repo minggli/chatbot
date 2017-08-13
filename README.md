@@ -7,21 +7,29 @@ This retrieval-based prototype bot uses publicly available health information to
 
 ## Requirement
 Python >= 3.4  
+Virtualenv >= 15.1 or Docker
 
 ## Installation
-Run `./install.sh`. This will create a virtual environment `venv` and install all components required within.
+### Virtualenv
+Run script `./install.sh`. This will first make a virtual environment `venv` and install components within it.
+### Docker
+Run `docker make -t chatbot .` to make a Docker image using Debian base image.
 
 ## Running chatbot
-Within virtualenv venv (`source venv/bin/activate`), you can launch separate service:
 
-`python3 -m chatbot.services.ask`;  
+`export ENGINE=NLTK` (default) to use NLTK backend for traditional Bag of Words model with Naive Bayes  
+
+`export ENGINE=TENSORFLOW` to use Tensorflow backend for representational sequence classification with Long-short Term Memroy (LSTM)
+
+### Virtualenv
+Within virtual environment `venv` (`source venv/bin/activate`), you can launch separate service:
+`python3 -m chatbot.services.ask`  
 `python3 -m chatbot.services.symptoms`
+### Docker
+`docker run -p 5000:5000 -e ENGINE=$ENGINE $(docker images "chatbot" -q) python -m chatbot.services.ask`  
+`docker run -p 5001:5001 $(docker images "chatbot" -q) python -m chatbot.services.symptoms`  
 
-For the first time running either service, it will take longer than usual as it needs to download, process and cache web data. Afterwards, it takes around 5 minutes to launch `ask` and instantly for `symptoms`.
-
-`export ENGINE=NLTK` to use NLTK backend for traditional Bag of Words model with Naive Bayes  
-
-`export ENGINE=TENSORFLOW` (default) to use Tensorflow backend for representational sequence classification with Long-short Term Memroy (LSTM)
+For the first time running either service, it will take longer than usual as it needs to download, process and cache web data.
 
 ## API endpoints
 Following endpoints are available to consume:
