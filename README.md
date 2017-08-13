@@ -21,6 +21,8 @@ Run `docker make -t chatbot .` to make a Docker image using Debian base image.
 
 `export ENGINE=TENSORFLOW` to use Tensorflow backend for representational sequence classification with Long-short Term Memroy (LSTM)
 
+For the first time running either service, it will take longer than usual as it needs to download, process and cache web data.  
+
 ### Virtualenv
 Within virtual environment `venv` (`source venv/bin/activate`), you can launch separate service:  
 
@@ -33,8 +35,6 @@ Run docker image and instantiate docker container for each service:
 `docker run -p 5000:5000 -e ENGINE=$ENGINE $(docker images "chatbot" -q) python -m chatbot.services.ask`  
 
 `docker run -p 5001:5001 $(docker images "chatbot" -q) python -m chatbot.services.symptoms`  
-
-For the first time running either service, it will take longer than usual as it needs to download, process and cache web data.
 
 ## API endpoints
 It accepts payload as simple as `{"questions": "your questions or description of symptoms"}` to below to query for indicative diagnosis:  
