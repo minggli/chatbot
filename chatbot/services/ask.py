@@ -13,7 +13,7 @@ from chatbot.settings import APP_CONFIG, BASE_URL, PORT_ASK, ENGINE
 
 if ENGINE.upper() == 'TENSORFLOW':
     from chatbot.engine.nn import inference as engine
-elif ENGINE.upper() == 'NLTK':
+else:
     from chatbot.engine.naivebayes import classify as engine
 
 app = Flask(__name__)
