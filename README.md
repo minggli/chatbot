@@ -12,8 +12,8 @@ Virtualenv >= 15.1 or Docker
 ## Installation
 ### Virtualenv
 Run script `./install.sh`. This will first make a virtual environment `venv` and install components within it.
-### Docker
-Run `docker make -t chatbot .` to make a Docker image using Debian base image.
+### Docker (Optional)
+Run `docker make -t minggli/chatbot .` to make a Docker image using Debian base image.
 
 ## Running chatbot
 
@@ -32,19 +32,19 @@ Within virtual environment `venv` (`source venv/bin/activate`), you can launch s
 ### Docker
 Run docker image and instantiate docker container for each service:  
 
-`docker run -p 5000:5000 -e ENGINE=$ENGINE $(docker images "chatbot" -q) python -m chatbot.services.ask`  
+`docker run -p 5000:5000 -e ENGINE=$ENGINE minggli/chatbot python -m chatbot.services.ask`  
 
-`docker run -p 5001:5001 $(docker images "chatbot" -q) python -m chatbot.services.symptoms`  
+`docker run -p 5001:5001 minggli/chatbot python -m chatbot.services.symptoms`  
 
 ## API endpoints
 It accepts payload as simple as `{"questions": "your questions or description of symptoms"}` to below to query for indicative diagnosis:  
 
-`POST /chatbot/api/v1/ask`  
+`POST localhost:5000/chatbot/api/v1/ask`  
 
 To list all leaflets or leaflet for the chosen symptom:  
 
-`GET /chatbot/api/v1/symptoms` or
-`GET /chatbot/api/v1/symptoms/<string:symptom_name>`
+`GET localhost:5001/chatbot/api/v1/symptoms` or
+`GET localhost:5001/chatbot/api/v1/symptoms/<string:symptom_name>`
 
 ## Further development ideas
 ~~Using word vector rather than sparse matrix to extract semantic proximity in embedded space;~~
