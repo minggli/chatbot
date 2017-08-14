@@ -19,6 +19,8 @@ tmp
 */*/*/*/__pycache__
 
 
-cache
 install.sh
 venv
+docs
+tests
+screenshots
