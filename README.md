@@ -13,7 +13,7 @@ Virtualenv >= 15.1 or Docker
 ### Virtualenv
 Run script `./install.sh`. This will first make a virtual environment `venv` and install components within it.
 ### Docker (Optional)
-Run `docker make -t minggli/chatbot .` to make a Docker image using Debian base image.
+Run `docker make -t minggli/chatbot .` to make a Docker image locally. This is not mandatory as `docker run` pulls remote image as fallback.
 
 ## Running chatbot
 
@@ -39,12 +39,12 @@ Run docker image and instantiate docker container for each service:
 ## API endpoints
 It accepts payload as simple as `{"questions": "your questions or description of symptoms"}` to below to query for indicative diagnosis:  
 
-`POST localhost:5000/chatbot/api/v1/ask`  
+`POST host:5000/chatbot/api/v1/ask`  
 
 To list all leaflets or leaflet for the chosen symptom:  
 
-`GET localhost:5001/chatbot/api/v1/symptoms` or
-`GET localhost:5001/chatbot/api/v1/symptoms/<string:symptom_name>`
+`GET host:5001/chatbot/api/v1/symptoms` or  
+`GET host:5001/chatbot/api/v1/symptoms/<string:symptom_name>`
 
 ## Further development ideas
 ~~Using word vector rather than sparse matrix to extract semantic proximity in embedded space;~~
