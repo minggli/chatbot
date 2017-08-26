@@ -6,14 +6,15 @@ This retrieval-based prototype bot uses publicly available health information to
 ![alt text](screenshots/example_cold.png "example common cold")
 
 ## Requirement
-Python >= 3.4  
-Virtualenv >= 15.1 or Docker
+Python >= 3.4 and Virtualenv >= 15.1  
+or  
+Docker
 
 ## Installation
 ### Virtualenv
 Run script `./install.sh`. This will first make a virtual environment `venv` and install components within it.
 ### Docker (Optional)
-Run `docker make -t minggli/chatbot .` to make a Docker image locally. This is not mandatory as `docker run` pulls remote image as fallback.
+Run `docker build -t minggli/chatbot .` to make a Docker image locally. This is not mandatory as `docker run` pulls remote image as fallback.
 
 ## Running chatbot
 
@@ -32,9 +33,9 @@ Within virtual environment `venv` (`source venv/bin/activate`), you can launch s
 ### Docker
 Run docker image and instantiate docker container for each service:  
 
-`docker run -p 5000:5000 -e ENGINE=$ENGINE minggli/chatbot python -m chatbot.services.ask`  
+`docker run -t -p 5000:5000 -e ENGINE=$ENGINE minggli/chatbot python -m chatbot.services.ask`  
 
-`docker run -p 5001:5001 minggli/chatbot python -m chatbot.services.symptoms`  
+`docker run -t -p 5001:5001 minggli/chatbot python -m chatbot.services.symptoms`  
 
 ## API endpoints
 It accepts payload as simple as `{"questions": "your questions or description of symptoms"}` to below to query for indicative diagnosis:  

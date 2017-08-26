@@ -4,20 +4,20 @@
     NLP pipeline
 """
 
-# import spacy
-import en_core_web_md
 import pickle
 
+from chatbot.nlp import ifninstall, _BaseNLP
 from chatbot.settings import CacheSettings
 
 
-class NLPPipeline:
+class NLPPipeline(_BaseNLP):
     """using SpaCy's features to extract relevance out of raw texts."""
 
     def __init__(self, attrs):
+        ifninstall(self.__class__.sm_pkg)
         print('initiating NLP language pipeline...', end='', flush=True)
-        # self._nlp = spacy.load('en_core_web_md')
-        self._nlp = en_core_web_md.load()
+        import en_core_web_sm
+        self._nlp = en_core_web_sm.load()
         print('done')
 
         self._is_string = None
