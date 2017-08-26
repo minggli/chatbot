@@ -6,8 +6,9 @@ This retrieval-based prototype bot uses publicly available health information to
 ![alt text](screenshots/example_cold.png "example common cold")
 
 ## Requirement
-Python >= 3.4  
-Virtualenv >= 15.1 or Docker
+Python >= 3.4 and Virtualenv >= 15.1  
+or  
+Docker
 
 ## Installation
 ### Virtualenv
