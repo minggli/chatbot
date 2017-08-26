@@ -9,22 +9,24 @@ GloVe: Global Vectors for Word Representation
 Pennington et al (2014)
 """
 
-# import spacy
-import en_core_web_md
 import numpy as np
 
 from itertools import chain, islice
 from collections import Counter, Sequence
 
+from chatbot.nlp import ifninstall, _BaseNLP
 
-class _BaseEmbedding(object):
+
+class _BaseEmbedding(_BaseNLP):
     """base class for word embedding through spacy"""
     def __init__(self):
-        self._corpus = None
+        ifninstall(self.__class__.md_pkg)
         print('initiating NLP language pipeline...', end='', flush=True)
-        # self._nlp = spacy.load('en_core_web_md')
+        import en_core_web_md
         self._nlp = en_core_web_md.load()
         print('done')
+
+        self._corpus = None
 
     @staticmethod
     def is_sentence(obj):
