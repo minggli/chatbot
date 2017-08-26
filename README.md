@@ -14,7 +14,7 @@ Docker
 ### Virtualenv
 Run script `./install.sh`. This will first make a virtual environment `venv` and install components within it.
 ### Docker (Optional)
-Run `docker make -t minggli/chatbot .` to make a Docker image locally. This is not mandatory as `docker run` pulls remote image as fallback.
+Run `docker build -t minggli/chatbot .` to make a Docker image locally. This is not mandatory as `docker run` pulls remote image as fallback.
 
 ## Running chatbot
 
