@@ -154,8 +154,7 @@ class TextMiner:
             for i, page_url in tqdm(enumerate(self._urls), miniters=1):
                 page = self._soups[i]
                 try:
-                    subj = page.find('meta', attrs=self._attrs[
-                        'subj_attributes']).get('content')
+                    subj = page.title.text.replace('- NHS.UK', '').strip()
                     meta = page.find('meta', attrs=self._attrs[
                         'desc_attributes']).get('content')
                     aricl = [i.get_text()
