@@ -33,9 +33,9 @@ Within virtual environment `venv` (`source venv/bin/activate`), you can launch s
 ### Docker
 Run docker image and instantiate docker container for each service:  
 
-`docker run -t --memory 10g --rm -p 5000:5000 -e ENGINE=$ENGINE minggli/chatbot python -m chatbot.services.ask`  
+`docker run -t --memory 8g --rm -p 5000:5000 -e ENGINE=$ENGINE minggli/chatbot python -m chatbot.services.ask`  
 
-`docker run -t --memory 10g --rm -p 5001:5001 minggli/chatbot python -m chatbot.services.symptoms`  
+`docker run -t --memory 8g --rm -p 5001:5001 minggli/chatbot python -m chatbot.services.symptoms`  
 
 ## API endpoints
 It accepts payload as simple as `{"questions": "your questions or description of symptoms"}` to below to query for indicative diagnosis:  
