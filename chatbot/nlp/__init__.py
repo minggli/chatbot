@@ -1,10 +1,11 @@
 import pip
+import pkg_resources
 
 
 def ifninstall(pkg_name):
     """pip install language models used by spacy."""
     egg = '#egg='
-    installed_pkg = [i.project_name for i in pip.get_installed_distributions()]
+    installed_pkg = [i.project_name for i in pkg_resources.working_set]
     egg_name = (egg in pkg_name) and pkg_name.split(egg)[1].replace('_', '-')
     if pkg_name and egg_name not in installed_pkg:
         pip.main(['install', pkg_name])
