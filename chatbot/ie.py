@@ -110,8 +110,10 @@ class TextMiner:
 
         try:
             r = requests.get(url=url)
-        except requests.exceptions.ConnectionError:
-            raise RuntimeError('There is no active Internet connection.')
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.TooManyRedirects) as e:
+            print('encountered error fetching web page.')
+            return tuple((None, url))
 
         if self._display:
             print(r.status_code, r.url)
