@@ -202,9 +202,7 @@ class TextMiner:
                 content.insert(0, subj)
                 content.insert(1, meta)
 
-                content = self.cleanse_content(content)
-
-                self._output[page_url] = content
+                self._output[page_url] = self.cleanse_content(content)
 
             for f_url in list(set(self._failed_urls)):
                 self._urls.remove(f_url)

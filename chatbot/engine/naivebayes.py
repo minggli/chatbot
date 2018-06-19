@@ -38,8 +38,7 @@ def train_model(documents, labels, sample_size=.3, verbose=True):
     for n, doc in enumerate(documents):
         feature = word_tokenize(' '.join(doc))
         label = labels[n]
-        resampled = resample(feature, label, sample_size)
-        labeled_feature_set += resampled
+        labeled_feature_set.extend(resample(feature, label, sample_size, n=50))
 
     if verbose:
         print('done', flush=True)
