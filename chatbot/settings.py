@@ -38,12 +38,12 @@ def build_config(filename):
     {"desc_attributes": {"name": "description"},
     "subj_attributes": {"name": "DC.title"},
     "article_attributes": {
-                            "start_t_0": "Overview",
-                            "start_t_1": "Print:",
-                            "start_t_2": "",
-                            "end_t_0": "Share:",
-                            "end_t_1": "",
-                            "end_t_2": ""}
+                            "start_t_0": "Health A-Z",
+                            "start_t_1": "Home",
+                            "start_t_2": "Create an account",
+                            "end_t_0": "NHS sites",
+                            "end_t_1": "About us",
+                            "end_t_2": "Contact us"}
                             }"""
 
     config['NLP'] = dict()
