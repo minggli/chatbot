@@ -25,6 +25,7 @@ def word_feat(words):
 
 
 def resample(feat, label, sample_size, n=100):
+    """bootstrap resampling of original sample."""
     k = int(sample_size * len(feat))
     return ((word_feat(random.sample(feat, k)), label) for _ in range(n))
 
