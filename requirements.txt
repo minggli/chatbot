@@ -17,7 +17,7 @@ ftfy==4.4.3
 html5lib==0.9999999
 idna==2.5
 itsdangerous==0.24
-Jinja2==2.9.5
+Jinja2==2.11.3
 Markdown==2.2.0
 MarkupSafe==0.23
 murmurhash==0.26.4
