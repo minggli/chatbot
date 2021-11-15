@@ -51,4 +51,4 @@ wcwidth==0.1.7
 webencodings==0.5.1
 Werkzeug==0.12.2
 wrapt==1.10.10
-pip==9.0.3
+pip==21.1
