@@ -22,7 +22,7 @@ Markdown==2.2.0
 MarkupSafe==0.23
 murmurhash==0.26.4
 nltk==3.2.2
-numpy==1.13.0
+numpy==1.22.0
 packaging==16.8
 pathlib==1.0.1
 pathtools==0.1.2
