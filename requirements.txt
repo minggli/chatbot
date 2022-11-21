@@ -39,7 +39,7 @@ semver==2.7.5
 six==1.10.0
 spacy==1.8.2
 sputnik==0.9.3
-tensorflow==1.2.0
+tensorflow==2.9.3
 termcolor==1.1.0
 thinc==6.5.2
 toolz==0.8.2
